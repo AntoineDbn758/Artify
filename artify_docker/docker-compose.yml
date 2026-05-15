@@ -1,0 +1,88 @@
+# =====================================================================
+# Stack LAMP minimaliste pour Artify
+#
+# - Apache + PHP 8.2 servant Projet Artify/artify/ sur http://127.0.0.1/
+# - MariaDB 10 sur 127.0.0.1:3306 (base "artify" auto-importée)
+# - phpMyAdmin sur http://127.0.0.1:8080
+#
+# Lancement :
+#   cd artify_docker
+#   docker compose up -d
+#   curl http://127.0.0.1/         # devrait servir index.php
+#
+# Arrêt :
+#   docker compose down            # garde les volumes
+#   docker compose down -v         # purge la base
+# =====================================================================
+
+services:
+  web:
+    image: php:8.2-apache
+    container_name: artify-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      # Sert directement les sources Artify (lecture seule depuis le côté hôte)
+      - "../Projet Artify/artify:/var/www/html"
+      - "./apache-vhost.conf:/etc/apache2/sites-enabled/000-default.conf"
+    environment:
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=artify
+      - DB_USER=root
+      - DB_PASSWORD=
+      # Stripe - mode test (https://dashboard.stripe.com/test/apikeys)
+      # Laisser vide => commande_new.php affichera un message d'aide.
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - APP_BASE_URL=${APP_BASE_URL:-http://127.0.0.1/artify}
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - bash
+      - -c
+      - |
+        docker-php-ext-install pdo pdo_mysql mysqli
+        a2enmod rewrite
+        apache2-foreground
+
+  db:
+    image: mariadb:10.11
+    container_name: artify-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ""
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+      MARIADB_DATABASE: artify
+    volumes:
+      - artify_db:/var/lib/mysql
+      # Le dump est importé automatiquement au tout premier démarrage
+      - "../Projet Artify/artify.sql:/docker-entrypoint-initdb.d/01-artify.sql:ro"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  pma:
+    image: phpmyadmin:5
+    container_name: artify-pma
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ""
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  artify_db:

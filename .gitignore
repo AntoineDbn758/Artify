@@ -1,0 +1,24 @@
+# Fichiers locaux / secrets
+artify_docker/.env
+*.env
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editeurs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Uploads users (vide a la creation, conserve via .gitkeep)
+artify/uploads/produits/*
+!artify/uploads/produits/.gitkeep
+
+# Logs et tmp
+*.log
+*.tmp
+tmp/
