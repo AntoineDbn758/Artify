@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Script de seed pour repeupler la base avec un jeu de donnees de
+ * demonstration (utilisateurs, artisans, produits, evenements, FAQ, ...).
+ * Idempotent : on peut le relancer sans casser, les INSERTs verifient
+ * l'existence avant. Acces protege par un token dans l'URL. A SUPPRIMER avant
+ * toute mise en production.
+ */
+
 /**
  * Artify - Seeder demo (one-shot, idempotent)
  *

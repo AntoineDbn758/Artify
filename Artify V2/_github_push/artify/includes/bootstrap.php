@@ -1,7 +1,19 @@
 <?php
+
+/**
+ * Le bootstrap de toutes les pages : demarre la session avec des cookies
+ * httponly + samesite, ouvre la BDD, definit les helpers qu'on utilise
+ * partout. Notamment : h() pour echapper du HTML, csrf_token() / csrf_field()
+ * / csrf_check() pour proteger les formulaires, require_login() et
+ * require_role() pour bloquer l'acces selon le profil utilisateur. Chaque
+ * page commence par require_once includes/bootstrap.php.
+ */
+
 // includes/bootstrap.php - initialisation commune (session, BDD, helpers).
 // À inclure en tout début de chaque page (avant tout output).
 
+// Cookie de session durci : httponly bloque l'acces JS,
+// samesite=Lax limite les envois cross-site (anti CSRF basique).
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -49,6 +61,8 @@ function require_role(string $role): void {
 }
 
 /* - CSRF - */
+// Token genere a la volee et stocke en session, reutilise tant
+// qu'il existe pour eviter d'invalider les formulaires ouverts.
 function csrf_token(): string {
     if (empty($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(16));
@@ -61,6 +75,7 @@ function csrf_field(): string {
 function csrf_check(): void {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
     $sent = $_POST['csrf'] ?? '';
+    // hash_equals pour eviter les timing attacks lors de la comparaison.
     if (!is_string($sent) || !hash_equals($_SESSION['csrf'] ?? '', $sent)) {
         http_response_code(400);
         die('Jeton CSRF invalide. Recharge la page et réessaie.');
@@ -69,6 +84,8 @@ function csrf_check(): void {
 
 /* - Récupère l'utilisateur courant (depuis BDD si besoin) - */
 function current_user(PDO $pdo): ?array {
+    // Cache statique pour ne pas relire l'utilisateur a chaque appel
+    // dans la meme requete.
     static $cache = null;
     if ($cache !== null) return $cache;
     if (!is_logged()) return null;
@@ -90,6 +107,8 @@ function current_artisan(PDO $pdo): ?array {
 function flash_set(string $type, string $msg): void {
     $_SESSION['flash'][] = ['type' => $type, 'msg' => $msg];
 }
+// Lecture destructive : on retire les messages apres affichage
+// pour qu'ils n'apparaissent pas deux fois.
 function flash_pop(): array {
     $f = $_SESSION['flash'] ?? [];
     unset($_SESSION['flash']);

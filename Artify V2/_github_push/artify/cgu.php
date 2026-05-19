@@ -1,12 +1,21 @@
 <?php
+
+/**
+ * Page d'affichage des Conditions Generales d'Utilisation. Charge la version
+ * active (est_actif=1) la plus recente depuis la table cgu. Versionning gere
+ * depuis le backoffice.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'CGU - Artify';
+// On prend la version active la plus recente, ce qui permet de preparer une future version en base sans la publier.
 $cgu = $pdo->query("SELECT contenu, version, date_effet FROM cgu WHERE est_actif = 1 ORDER BY date_effet DESC LIMIT 1")->fetch();
 include __DIR__ . '/includes/header.php';
 ?>
 <div class="crumb"><a href="index.php">Accueil</a> &rsaquo; CGU</div>
 <h1>Conditions Générales d'Utilisation</h1>
 
+<?php // Fallback si la table cgu est vide : on affiche une version 1.0 codee en dur pour ne jamais montrer une page sans CGU. ?>
 <?php if (!$cgu): ?>
   <div class="card">
     <p class="meta">Version 1.0 - par défaut</p>

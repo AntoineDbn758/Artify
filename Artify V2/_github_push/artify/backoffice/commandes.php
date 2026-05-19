@@ -1,14 +1,26 @@
 <?php
+
+/**
+ * Vue globale des commandes. Permet de faire passer une commande d'un statut
+ * a l'autre dans le workflow : en_attente -> confirmee -> en_fabrication ->
+ * expediee -> livree (ou annulee a tout moment). Tres utile pour le suivi
+ * cote artisan ou support.
+ */
+
 $page_title = 'Commandes - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
+// Liste blanche des statuts autorises. Sert a la fois pour valider le POST et
+// pour generer le select de filtrage : pas de magic string ailleurs.
 $STATUTS = ['en_attente','confirmee','en_fabrication','expediee','livree','annulee'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
+    // Changement d'etape du workflow : on refuse tout statut hors liste blanche
+    // pour eviter qu'un POST forge corrompe la BDD.
     if ($action === 'set_statut') {
         $st = $_POST['statut'] ?? '';
         if (in_array($st, $STATUTS, true)) {
@@ -16,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', "Statut → $st.");
         }
     } elseif ($action === 'delete') {
+        // Les lignes_commande doivent partir avant la commande pour ne pas se
+        // faire bloquer par la FK.
         try {
             $pdo->prepare("DELETE FROM ligne_commande WHERE commande_id = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM commande WHERE id = ?")->execute([$id]);
@@ -30,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $filter = $_GET['statut'] ?? '';
 $view = (int)($_GET['view'] ?? 0);
 
+// Mode fiche : ?view=<id> bascule du listing vers le detail (en-tete + lignes).
 if ($view > 0) {
     $cmd = $pdo->prepare(
       "SELECT c.*, u.prenom, u.nom, u.email, a.nom_boutique

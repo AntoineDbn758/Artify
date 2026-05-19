@@ -1,7 +1,15 @@
 <?php
+
+/**
+ * Fiche d'un artisan : description, ville, site web, instagram, note moyenne
+ * et liste de ses produits publies. La photo d'illustration varie selon la
+ * specialite (Bijouterie, Ceramique, Textile, ...).
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $id = (int)($_GET['id'] ?? 0);
 
+// On recupere artisan + utilisateur en une seule requete pour eviter un round-trip BDD supplementaire.
 $st = $pdo->prepare(
   "SELECT a.*, u.prenom, u.nom, u.ville, u.bio, u.avatar_url
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
@@ -18,6 +26,7 @@ if (!$artisan) {
 }
 $page_title = $artisan['nom_boutique'] . ' - Artify';
 
+// Liste des produits publies de cet artisan, du plus recent au plus ancien.
 $prods = $pdo->prepare(
   "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie,
           ip.url AS image_url

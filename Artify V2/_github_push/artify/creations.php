@@ -1,7 +1,16 @@
 <?php
+
+/**
+ * Catalogue de toutes les creations publiees. Supporte un filtre par
+ * categorie via le parametre GET ?cat=ID. Limite a 60 produits par page pour
+ * eviter les listes interminables, suffisant tant qu'on reste sur le marche
+ * francais.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Créations - Artify';
 
+// Cast en int pour neutraliser toute injection sur le filtre categorie passe via l'URL.
 $cat = (int)($_GET['cat'] ?? 0);
 $cats = $pdo->query("SELECT id, nom FROM categorie ORDER BY nom")->fetchAll();
 
@@ -12,6 +21,7 @@ $sql = "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie, a.nom_bouti
           JOIN artisan a   ON a.id = p.artisan_id
           LEFT JOIN image_produit ip ON ip.produit_id = p.id AND ip.est_principale = 1
          WHERE p.est_publie = 1 ";
+// Construction dynamique de la clause WHERE : la categorie n'est ajoutee que si on a un filtre actif.
 $params = [];
 if ($cat > 0) { $sql .= " AND p.categorie_id = ? "; $params[] = $cat; }
 $sql .= " ORDER BY p.created_at DESC LIMIT 60";

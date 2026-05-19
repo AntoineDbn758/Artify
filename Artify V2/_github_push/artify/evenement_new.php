@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Creation d'un evenement par l'artisan : titre, description, lieu, ville,
+ * date debut, date fin optionnelle, capacite max, prix d'entree. L'evenement
+ * apparait ensuite dans evenements.php.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Nouvel événement - Artify';
@@ -14,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$titre) $errors[] = "Titre requis.";
     if (!$dd || !strtotime($dd)) $errors[] = "Date de début invalide.";
 
+    // est_publie=1 par defaut : un evenement cree ici est immediatement visible, pas de workflow de validation par admin pour le moment.
     if (!$errors) {
         $df = $_POST['date_fin'] ?? '';
         $pdo->prepare(
@@ -25,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             trim($_POST['description'] ?? '') ?: null,
             trim($_POST['lieu'] ?? '') ?: null,
             trim($_POST['ville'] ?? '') ?: null,
+            // Normalisation : datetime-local renvoie au format ISO local, on repasse en MySQL DATETIME pour eviter les surprises de formatage.
             date('Y-m-d H:i:s', strtotime($dd)),
             $df ? date('Y-m-d H:i:s', strtotime($df)) : null,
             $_POST['capacite_max'] !== '' ? (int)$_POST['capacite_max'] : null,

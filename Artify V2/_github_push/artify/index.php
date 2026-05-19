@@ -1,8 +1,17 @@
 <?php
+
+/**
+ * Page d'accueil. Compose le hero editorial avec un appel a l'action, puis
+ * affiche les creations recentes et les artisans en vedette. Toutes les
+ * requetes utilisent un LEFT JOIN sur image_produit pour recuperer la photo
+ * principale directement.
+ */
+
 // index.php - Page d'accueil Artify (server-rendered).
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Artify - Plateforme des Créateurs';
 
+// On ne remonte que les produits publies, avec leur image marquee comme principale via LEFT JOIN (NULL si l'artisan n'en a pas encore mis).
 $produits = $pdo->query(
   "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie, a.nom_boutique,
           ip.url AS image_url
@@ -15,6 +24,7 @@ $produits = $pdo->query(
     LIMIT 6"
 )->fetchAll();
 
+// On exclut les artisans dont le compte utilisateur a ete desactive depuis le backoffice.
 $artisans = $pdo->query(
   "SELECT a.id, a.nom_boutique, a.specialite, a.description, u.prenom, u.nom, u.ville
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
@@ -23,6 +33,7 @@ $artisans = $pdo->query(
     LIMIT 6"
 )->fetchAll();
 
+// Uniquement les evenements a venir, tries du plus proche au plus lointain.
 $events = $pdo->query(
   "SELECT e.id, e.titre, e.lieu, e.ville, e.date_debut, e.prix_entree
      FROM evenement e

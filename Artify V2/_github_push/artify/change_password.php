@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Changement du mot de passe. Demande l'ancien mot de passe pour verification
+ * avant d'accepter le nouveau. Le hash est regenere avec password_hash().
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Changer mon mot de passe - Artify';
@@ -13,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($new) < 6) $errors[] = "Le nouveau mot de passe doit faire au moins 6 caractères.";
     if ($new !== $confirm) $errors[] = "La confirmation ne correspond pas.";
 
+    // On exige l'ancien mot de passe meme si l'utilisateur est deja logge, pour empecher qu'une session volee permette de prendre le compte.
     if (!$errors) {
         $st = $pdo->prepare("SELECT mot_de_passe FROM utilisateur WHERE id = ?");
         $st->execute([current_user_id()]);
@@ -21,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Ancien mot de passe incorrect.";
         }
     }
+    // Bcrypt avec son cost par defaut, suffisant et coherent avec ce qui est utilise a l'inscription.
     if (!$errors) {
         $newHash = password_hash($new, PASSWORD_BCRYPT);
         $pdo->prepare("UPDATE utilisateur SET mot_de_passe = ? WHERE id = ?")

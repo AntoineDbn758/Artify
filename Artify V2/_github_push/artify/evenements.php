@@ -1,7 +1,15 @@
 <?php
+
+/**
+ * Liste des evenements futurs uniquement (clause WHERE date_debut >= NOW()).
+ * Chaque evenement a une photo, un lieu, une date et un prix d'entree
+ * (souvent gratuit).
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Événements - Artify';
 
+// On filtre sur date_debut >= NOW() pour ne jamais lister un evenement deja passe, meme s'il est encore publie en base.
 $events = $pdo->query(
   "SELECT e.id, e.titre, e.description, e.lieu, e.ville, e.date_debut, e.date_fin,
           e.prix_entree, e.capacite_max, e.image_url, a.nom_boutique

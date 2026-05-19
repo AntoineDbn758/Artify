@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Creation d'un produit pour l'artisan. Le formulaire accepte une URL d'image
+ * externe OU un upload de fichier (jpg/png/webp, max 5 Mo, stocke dans
+ * uploads/produits/). La photo est ajoutee dans image_produit avec
+ * est_principale=1.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Nouveau produit - Artify';
@@ -17,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_numeric($prix) || (float)$prix <= 0) $errors[] = "Prix invalide.";
     if (!$cat) $errors[] = "Catégorie requise.";
 
+    // L'artisan_id vient toujours de la session, jamais d'un input cache, pour empecher un artisan de creer un produit sous une autre boutique.
     if (!$errors) {
         $st = $pdo->prepare(
           "INSERT INTO produit (artisan_id, categorie_id, nom, description, prix, materiaux, dimensions,
@@ -34,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $produit_id = (int)$pdo->lastInsertId();
 
-        // Photo principale : URL externe OU upload local
+        // Photo principale : URL externe OU upload local. On controle le MIME reel via mime_content_type plutot que de se fier a l'extension, plus fiable.
         $image_url = trim($_POST['image_url'] ?? '');
         $uploaded  = '';
         if (!empty($_FILES['photo']['name']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -44,12 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ext = $allowed[$mime];
                 $dir = __DIR__ . '/uploads/produits';
                 if (!is_dir($dir)) @mkdir($dir, 0755, true);
+                // Nom de fichier compose de l'id produit + suffixe aleatoire, pour eviter les collisions et cacher l'ordre d'upload.
                 $fname = "p{$produit_id}-" . bin2hex(random_bytes(4)) . ".$ext";
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], "$dir/$fname")) {
                     $uploaded = "uploads/produits/$fname";
                 }
             }
         }
+        // L'upload local prime sur l'URL externe si les deux sont fournis, sinon on enregistre quand meme une image principale.
         $final_url = $uploaded ?: $image_url;
         if ($final_url) {
             $pdo->prepare("INSERT INTO image_produit (produit_id, url, ordre, est_principale) VALUES (?,?,0,1)")
