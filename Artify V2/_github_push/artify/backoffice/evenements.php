@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Gestion des evenements : publication, depublication, suppression. Bouton
+ * pour voir la liste des inscrits par evenement.
+ */
+
 $page_title = 'Événements - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
@@ -7,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
+    // Toggle publication : un evt depublie n'apparait plus sur le site public.
     if ($action === 'toggle_publie') {
         $pdo->prepare("UPDATE evenement SET est_publie = 1 - est_publie WHERE id = ?")->execute([$id]);
         flash_set('success', 'Publication basculée.');
@@ -17,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('evenements.php' . (isset($_GET['view']) ? '?view=' . (int)$_GET['view'] : ''));
 }
 
-// Voir inscrits ?
+// Mode "detail" : si ?view=<id> est present, on charge l'evt + la liste des
+// inscrits pour afficher la fiche au lieu du listing.
 $view = (int)($_GET['view'] ?? 0);
 if ($view > 0) {
     $evt = $pdo->prepare(
@@ -36,6 +44,8 @@ if ($view > 0) {
     }
 }
 
+// On ne compte que les inscriptions "confirmee" pour eviter de gonfler le
+// chiffre avec les annulations ou les en-attente.
 $rows = $pdo->query(
   "SELECT e.*, a.nom_boutique,
           (SELECT COUNT(*) FROM inscription_evenement ie WHERE ie.evenement_id = e.id AND ie.statut='confirmee') AS nb_inscrits

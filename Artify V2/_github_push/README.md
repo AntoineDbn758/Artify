@@ -5,7 +5,9 @@ Projet ISEP 2025-2026.
 
 ## Stack
 
-- **Frontend** : HTML / CSS / JavaScript vanilla
+- **Frontend** : HTML + CSS (rendu cote serveur) + JavaScript vanilla pour
+  l'amelioration progressive (menu mobile, accordeon FAQ, preview image,
+  boutons +/- de quantite, etc.)
 - **Backend** : PHP 8.2 + PDO prepare
 - **Base de donnees** : MariaDB 10.11 (18 tables)
 - **Paiement** : Stripe Checkout (mode test)
@@ -15,15 +17,99 @@ Projet ISEP 2025-2026.
 
 ```
 .
-| artify/                 Site PHP (front public + espace user + artisan + backoffice)
-|  |- backoffice/         Pages admin (12 pages)
-|  |- includes/           Header, footer, bootstrap, CSRF, auth
-|  |- css/                Styles globaux
-|  |- *.php               Pages publiques et endpoints
-| artify_docker/          Stack Docker (compose, vhost Apache, env)
-| artify.sql              Schema BDD + donnees de base (18 tables)
-| README.md               Ce fichier
+|- README.md              Ce fichier (presentation du projet)
+|- PUSH.md                Instructions Git pour pousser sur GitHub
+|- .gitignore             Fichiers exclus du suivi Git (.env, uploads, etc.)
+|- artify.sql             Dump du schema BDD + donnees initiales (18 tables)
+|
+|- artify/                Code source du site PHP (~ 40 fichiers)
+|  |
+|  |- includes/           Composants partages a tous les fichiers
+|  |   |- bootstrap.php   Demarre la session, charge la BDD, helpers (h(), csrf, role)
+|  |   |- header.php      Header HTML commun (logo, nav, recherche)
+|  |   |- footer.php      Footer HTML commun (liens FAQ, CGU, mentions)
+|  |   |- stripe.php      Wrapper API Stripe pour le paiement (curl, sans SDK)
+|  |   |- seed.php        Donnees de demonstration insertables (utile en dev)
+|  |
+|  |- css/
+|  |   |- style.css       Feuille de style globale du site (palette ocre)
+|  |
+|  |- backoffice/         Espace administrateur (require role='admin')
+|  |   |- _header.php     Header admin avec sidebar de navigation
+|  |   |- _footer.php     Footer admin
+|  |   |- css/admin.css   Styles specifiques au backoffice (dashboard, tables)
+|  |   |- index.php       Tableau de bord (statistiques cartes)
+|  |   |- users.php       Gestion utilisateurs (role, activer, supprimer)
+|  |   |- artisans.php    Validation et gestion des artisans
+|  |   |- produits.php    Listing et publication des produits
+|  |   |- categories.php  CRUD des categories
+|  |   |- evenements.php  Publication des evenements
+|  |   |- commandes.php   Workflow des commandes (6 statuts)
+|  |   |- avis.php        Moderation des avis clients
+|  |   |- faq.php         Edition des questions/reponses FAQ
+|  |   |- cgu.php         Edition versionnee des CGU
+|  |   |- mentions.php    Edition des mentions legales
+|  |   |- contacts.php    Messages contact recus (a traiter)
+|  |
+|  |- uploads/produits/   Dossier (vide) pour les photos uploadees par les artisans
+|  |
+|  |- index.php           Page d'accueil (hero + creations a la une + artisans)
+|  |- artisans.php        Annuaire des artisans
+|  |- artisan.php         Fiche detaillee d'un artisan + ses produits
+|  |- creations.php       Catalogue des produits (filtres par categorie)
+|  |- produit.php         Fiche detaillee d'un produit (avec bouton Commander)
+|  |- evenements.php      Liste des evenements futurs
+|  |- evenement.php       Fiche d'un evenement + bouton d'inscription
+|  |- galerie.php         Galerie virtuelle (mosaique de creations)
+|  |- recherche.php       Recherche par mot-cle (produits + artisans)
+|  |- faq.php             Foire aux questions
+|  |- contact.php         Formulaire de contact
+|  |- cgu.php             Conditions generales d'utilisation
+|  |- mentions.php        Mentions legales
+|  |
+|  |- register_form.php   Formulaire d'inscription (visiteur ou artisan)
+|  |- inscription.php     Handler POST de l'inscription (CSRF + BCRYPT)
+|  |- login_form.php      Formulaire de connexion
+|  |- login.php           Handler POST du login (session securisee)
+|  |- logout.php          Destruction de la session
+|  |
+|  |- profile.php         Profil de l'utilisateur connecte
+|  |- profile_edit.php    Edition du profil (avec avatar URL)
+|  |- change_password.php Changement de mot de passe
+|  |- mes_commandes.php   Historique des commandes du user
+|  |
+|  |- boutique.php        (Artisan) Tableau de bord de sa boutique
+|  |- produit_new.php     (Artisan) Creation d'un produit + upload photo
+|  |- produit_edit.php    (Artisan) Modification d'un produit
+|  |- produit_delete.php  (Artisan) Suppression d'un produit (avec confirmation)
+|  |- evenement_new.php   (Artisan) Creation d'un evenement
+|  |
+|  |- commande_new.php    Cree une commande + session Stripe Checkout
+|  |- commande_success.php  Callback Stripe en cas de paiement reussi
+|  |- commande_cancel.php   Callback Stripe en cas d'annulation
+|  |
+|  |- connexion.php       Connexion PDO a la BDD (env DB_HOST, DB_NAME, ...)
+|
+|- artify_docker/         Stack Docker pour developpement local
+|   |- docker-compose.yml   3 services : web (Apache+PHP), db (MariaDB), pma (phpMyAdmin)
+|   |- apache-vhost.conf    Vhost Apache (DocumentRoot /var/www/html + alias /artify)
+|   |- .env.example         Variables d'environnement a copier en .env (cles Stripe)
+|   |- .gitignore           Force l'exclusion du .env reel (secrets)
 ```
+
+### Notes sur l'arborescence
+
+- **`includes/`** centralise le code partage par toutes les pages
+  (session, BDD, CSRF, helpers d'echappement). Une modification y est
+  propagee partout.
+- **`backoffice/`** est un sous-site protege ; toutes ses pages commencent
+  par `require_role('admin')` charge depuis `_header.php`.
+- **`uploads/produits/`** est volontairement vide dans le repo (`.gitkeep`).
+  Les fichiers uploades par les artisans ne sont pas suivis par Git.
+- **`artify.sql`** est importe automatiquement au premier demarrage du
+  conteneur MariaDB (mecanisme `docker-entrypoint-initdb.d`).
+- **`artify_docker/.env`** (non versionne) contient les vraies cles Stripe.
+  Le `.env.example` montre le format attendu.
 
 ## Demarrage rapide
 

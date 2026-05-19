@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Formulaire d'edition du profil. L'email n'est pas modifiable (c'est la cle
+ * d'identification). On peut changer nom, prenom, ville, telephone, bio, URL
+ * de l'avatar.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Éditer mon profil - Artify';
@@ -17,15 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$nom || !$prenom) $errors[] = "Nom et prénom requis.";
     if ($avatar && !filter_var($avatar, FILTER_VALIDATE_URL)) $errors[] = "URL d'avatar invalide.";
 
+    // Les champs optionnels sont passes a null en BDD (plutot que chaine vide) pour rester coherents avec le schema.
     if (!$errors) {
         $pdo->prepare(
           "UPDATE utilisateur SET nom=?, prenom=?, bio=?, ville=?, telephone=?, avatar_url=? WHERE id=?"
         )->execute([$nom, $prenom, $bio ?: null, $ville ?: null, $tel ?: null, $avatar ?: null, current_user_id()]);
+        // On synchronise la session pour que le header affiche immediatement le nouveau nom sans devoir se reconnecter.
         $_SESSION['user_nom'] = $prenom . ' ' . $nom;
         flash_set('success', 'Profil mis à jour.');
         redirect('profile.php');
     }
-    // reload pour réafficher avec ce que l'utilisateur a saisi
+    // En cas d'erreur de validation on conserve la saisie de l'utilisateur dans $u pour eviter qu'il doive tout retaper.
     $u = array_merge($u, [
       'nom'=>$nom,'prenom'=>$prenom,'bio'=>$bio,'ville'=>$ville,'telephone'=>$tel,'avatar_url'=>$avatar
     ]);

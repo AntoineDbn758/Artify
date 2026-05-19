@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Header du backoffice administrateur : sidebar de navigation avec les 12
+ * sections (Dashboard, Users, Artisans, Produits, ...) et un appel a
+ * require_role('admin') qui bloque l'acces aux non-admins. Charge admin.css.
+ */
+
 // backoffice/_header.php - header dédié au backoffice :
 //   - inclut la nav publique (style cohérent) via includes/header.php
 //   - ouvre un layout flex avec une sidebar gauche
@@ -6,18 +13,20 @@
 // après avoir défini $page_title et $base = '../'.
 
 require_once __DIR__ . '/../includes/bootstrap.php';
+// Verrou d'acces : tout non-admin est redirige avant de voir quoi que ce soit.
 require_role('admin');
 
 $page_title = $page_title ?? 'Backoffice - Artify';
 $base = '../';
 
-// Page active (pour le surlignage de la sidebar)
+// Sert a savoir quel item de la sidebar mettre en surbrillance.
 $current = basename($_SERVER['SCRIPT_NAME'] ?? '');
 
 include __DIR__ . '/../includes/header.php';
 
 // Surcharge CSS dédiée admin (chargée APRÈS style.css du header)
 ?>
+<?php // Chargee apres style.css pour pouvoir surcharger les regles du front. ?>
 <link rel="stylesheet" href="<?= h($base) ?>backoffice/css/admin.css">
 <?php
 // Items de la sidebar : [file => [label, icone]]
@@ -41,6 +50,7 @@ $nav = [
   <aside class="admin-sidebar">
     <h2>Admin Artify</h2>
     <ul>
+      <?php // La cle '_sep' produit un separateur visuel entre les blocs metier et les pages legales. ?>
       <?php foreach ($nav as $file => $info): ?>
         <?php if ($file === '_sep'): ?>
           <li class="sep"></li>

@@ -1,3 +1,8 @@
+-- Dump SQL initial de la base 'artify'. Importe automatiquement au premier
+-- demarrage du conteneur MariaDB grace au mecanisme docker-entrypoint-initdb.d.
+-- Contient les 18 tables (utilisateur, artisan, produit, categorie, evenement,
+-- ...) et quelques lignes de demarrage (categories de base, FAQ initiale).
+
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/

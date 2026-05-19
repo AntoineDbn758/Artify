@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Edition de la FAQ. Ajout / modification inline / suppression / reordering
+ * via le champ ordre. Active ou desactive une question sans la supprimer.
+ */
+
 $page_title = 'FAQ - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
@@ -6,6 +12,8 @@ require_once __DIR__ . '/_header.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $action = $_POST['action'] ?? '';
+    // Creation : on impose est_actif=1 par defaut pour que la nouvelle entree
+    // apparaisse tout de suite cote public.
     if ($action === 'create') {
         $q = trim($_POST['question'] ?? '');
         $r = trim($_POST['reponse']  ?? '');
@@ -16,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'FAQ créée.');
         } else flash_set('error', 'Question et réponse requises.');
     } elseif ($action === 'update') {
+        // Une checkbox non cochee n'est pas envoyee en POST, d'ou le isset.
         $id = (int)($_POST['id'] ?? 0);
         $q = trim($_POST['question'] ?? '');
         $r = trim($_POST['reponse']  ?? '');
@@ -32,6 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('faq.php');
 }
 
+// Tri par ordre puis id : meme ordre que la page publique pour eviter les
+// surprises lors d'un drag-and-drop futur.
 $faqs = $pdo->query("SELECT * FROM faq ORDER BY ordre ASC, id ASC")->fetchAll();
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; FAQ</div>

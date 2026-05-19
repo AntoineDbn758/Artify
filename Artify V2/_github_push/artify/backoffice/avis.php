@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Moderation des avis clients. Permet de supprimer un avis inapproprie. Quand
+ * un avis est supprime, on recalcule la note moyenne et le nb_avis de
+ * l'artisan associe.
+ */
+
 $page_title = 'Avis - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
@@ -7,12 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     if (($_POST['action'] ?? '') === 'delete') {
-        // Récupérer artisan_id avant suppression pour recalc
+        // On note l'artisan concerne AVANT le DELETE, sinon impossible de
+        // retrouver a qui recalculer la moyenne.
         $r = $pdo->prepare("SELECT artisan_id FROM avis WHERE id = ?");
         $r->execute([$id]); $aid = (int)$r->fetchColumn();
         $pdo->prepare("DELETE FROM avis WHERE id = ?")->execute([$id]);
         if ($aid > 0) {
-            // Recalcul moyenne et nb_avis
+            // Les colonnes note_moyenne et nb_avis sont denormalisees sur
+            // artisan : on les rafraichit a la main pour rester coherent.
             $st = $pdo->prepare("SELECT AVG(note) AS m, COUNT(*) AS n FROM avis WHERE artisan_id = ?");
             $st->execute([$aid]); $agg = $st->fetch();
             $pdo->prepare("UPDATE artisan SET note_moyenne = ?, nb_avis = ? WHERE id = ?")
@@ -23,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('avis.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
+// Filtre moderation : note <= seuil pour repercher rapidement les avis
+// negatifs, plus filtre par artisan pour cibler une boutique signalee.
 $min = (int)($_GET['min'] ?? 0);
 $artid = (int)($_GET['artisan_id'] ?? 0);
 $where = []; $params = [];

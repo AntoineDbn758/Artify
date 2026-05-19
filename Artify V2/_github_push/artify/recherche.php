@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Recherche par mot-cle. Cherche le terme dans le nom du produit, sa
+ * description, son materiau et le nom de boutique de l'artisan via des LIKE
+ * en SQL. Les recherches sont aussi journalisees dans recherche_log pour
+ * stats futures.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Recherche - Artify';
 
@@ -7,12 +15,13 @@ $results_prod = [];
 $results_art  = [];
 
 if ($q !== '') {
-    // Log de la recherche
+    // Log de la recherche : non-bloquant, si la table sature ou disparait on ne casse pas la page utilisateur.
     try {
         $pdo->prepare("INSERT INTO recherche_log (utilisateur_id, terme) VALUES (?, ?)")
             ->execute([current_user_id(), mb_substr($q, 0, 200)]);
     } catch (PDOException $e) { /* non-bloquant */ }
 
+    // Le LIKE est passe en parametre prepared, donc le % et le terme utilisateur sont safes face aux injections.
     $like = '%' . $q . '%';
     $st = $pdo->prepare(
       "SELECT p.id, p.nom, p.prix, c.nom AS categorie, a.nom_boutique,
@@ -26,6 +35,7 @@ if ($q !== '') {
     $st->execute([$like, $like, $like]);
     $results_prod = $st->fetchAll();
 
+    // Recherche cote artisans : nom de boutique, specialite et description, en excluant les comptes desactives.
     $st = $pdo->prepare(
       "SELECT a.id, a.nom_boutique, a.specialite, u.ville
          FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id

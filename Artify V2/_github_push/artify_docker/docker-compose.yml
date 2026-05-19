@@ -1,3 +1,11 @@
+# Stack Docker pour le developpement local. Trois services qui tournent ensemble
+# : 'web' (Apache 2 + PHP 8.2 servant le code PHP), 'db' (MariaDB 10.11 avec le
+# dump artify.sql importe au premier demarrage), 'pma' (phpMyAdmin sur le port
+# 8080 pour consulter la base facilement). Les variables d'environnement DB_* et
+# STRIPE_* sont injectees dans le conteneur web pour que connexion.php et
+# includes/stripe.php les retrouvent. Le code source est monte en bind volume
+# (les modifs sont visibles instantanement, sans rebuild).
+
 # =====================================================================
 # Stack LAMP minimaliste pour Artify
 #

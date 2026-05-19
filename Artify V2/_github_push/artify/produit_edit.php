@@ -1,10 +1,18 @@
 <?php
+
+/**
+ * Edition d'un produit existant. Verifie au prealable que le produit
+ * appartient bien a l'artisan connecte (anti-IDOR). Permet aussi de remplacer
+ * la photo principale.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Modifier un produit - Artify';
 $artisan = current_artisan($pdo);
 if (!$artisan) { flash_set('error', 'Aucune boutique.'); redirect('profile.php'); }
 
+// Check d'ownership : on filtre par artisan_id de la session pour qu'un artisan ne puisse pas editer le produit d'un autre via l'URL (anti-IDOR).
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
 $st = $pdo->prepare("SELECT * FROM produit WHERE id = ? AND artisan_id = ?");
 $st->execute([$id, (int)$artisan['id']]);
@@ -23,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_numeric($prix) || (float)$prix <= 0) $errors[] = "Prix invalide.";
     if (!$cat) $errors[] = "Catégorie requise.";
 
+    // Deuxieme garde-fou : on repete la condition artisan_id dans le WHERE de l'UPDATE pour bloquer toute manipulation de l'id en POST.
     if (!$errors) {
         $pdo->prepare(
           "UPDATE produit SET categorie_id=?, nom=?, description=?, prix=?, materiaux=?, dimensions=?,
@@ -56,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+        // On bascule d'abord les images existantes en non-principales, puis on ajoute la nouvelle : evite d'avoir deux principales en base.
         $final_url = $uploaded ?: $image_url;
         if ($final_url) {
-            // Met à jour l'image principale (ou la crée si elle n'existe pas)
             $pdo->prepare("UPDATE image_produit SET est_principale=0 WHERE produit_id=?")->execute([$id]);
             $pdo->prepare("INSERT INTO image_produit (produit_id, url, ordre, est_principale) VALUES (?,?,0,1)")
                 ->execute([$id, $final_url]);
