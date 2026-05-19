@@ -16,6 +16,7 @@
  * Utilise uniquement curl, pas de dépendance composer.
  */
 
+// Lit les cles depuis l'env Docker, jamais en dur dans le code.
 function stripe_keys(): array {
     return [
         'pk' => getenv('STRIPE_PUBLISHABLE_KEY') ?: '',
@@ -32,6 +33,7 @@ function stripe_configured(): bool {
         && str_starts_with($k['pk'], 'pk_');
 }
 
+// Permet d'afficher un badge "mode test" pour eviter la confusion en demo.
 function stripe_is_test_mode(): bool {
     $k = stripe_keys();
     return str_starts_with($k['sk'], 'sk_test_');
@@ -46,6 +48,7 @@ function stripe_post(string $endpoint, array $data): array {
     // Auth Stripe = Basic avec la cle secrete en username,
     // mot de passe vide (convention de l'API).
     $ch = curl_init("https://api.stripe.com/v1/$endpoint");
+    // Timeout 20s : Stripe repond en general en moins d'1s, au-dela on abandonne.
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
@@ -58,10 +61,12 @@ function stripe_post(string $endpoint, array $data): array {
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
     curl_close($ch);
+    // Echec reseau : on remonte l'erreur curl pour pouvoir l'afficher en debug.
     if ($body === false) {
         return ['_error' => "curl: $err", '_http_code' => 0];
     }
     $json = json_decode($body, true) ?: [];
+    // On ajoute le code HTTP au retour pour que l'appelant puisse tester succes/echec.
     $json['_http_code'] = $code;
     return $json;
 }
@@ -69,6 +74,7 @@ function stripe_post(string $endpoint, array $data): array {
 /**
  * GET application/x-www-form-urlencoded à l'API Stripe.
  */
+// Utilise pour relire l'etat d'une session Checkout existante (verif paiement).
 function stripe_get(string $endpoint): array {
     $k = stripe_keys();
     $ch = curl_init("https://api.stripe.com/v1/$endpoint");
@@ -94,11 +100,13 @@ function stripe_get(string $endpoint): array {
 function stripe_build_query(array $data, string $prefix = ''): string {
     $parts = [];
     foreach ($data as $k => $v) {
+        // Construction du nom de cle : sans prefixe au depart, sinon parent[enfant].
         $key = $prefix === '' ? $k : "{$prefix}[{$k}]";
         // Recursion pour aplatir les sous tableaux en cle[sous-cle].
         if (is_array($v)) {
             $parts[] = stripe_build_query($v, $key);
         } else {
+            // rawurlencode (pas urlencode) car Stripe veut les espaces en %20, pas en +.
             $parts[] = rawurlencode($key) . '=' . rawurlencode((string)$v);
         }
     }
@@ -114,15 +122,18 @@ function stripe_create_checkout(array $items, string $success_url, string $cance
     // Stripe attend les montants en centimes et le nom du produit
     // limite a 100 caracteres, sinon l'API renvoie une erreur 400.
     $line_items = [];
+    // Boucle de transformation : chaque article du panier devient une ligne Stripe.
     foreach ($items as $i => $it) {
         $line_items[$i] = [
             'price_data' => [
                 'currency'     => 'eur',
+                // round() avant cast int : evite des erreurs d'arrondi sur 19.99 -> 1998.
                 'unit_amount'  => (int)round(((float)$it['prix']) * 100), // centimes
                 'product_data' => [
                     'name' => substr($it['nom'], 0, 100),
                 ],
             ],
+            // Quantite mini 1 : protection contre un panier a 0 pousse en POST.
             'quantity' => max(1, (int)($it['quantite'] ?? 1)),
         ];
         // Image transmise seulement si l'URL est valide, sinon Stripe rejette.
@@ -130,6 +141,7 @@ function stripe_create_checkout(array $items, string $success_url, string $cance
             $line_items[$i]['price_data']['product_data']['images'] = [$it['image_url']];
         }
     }
+    // mode=payment : paiement unique (pas d'abonnement), locale=fr pour traduire la page Stripe.
     $data = [
         'mode'        => 'payment',
         'line_items'  => $line_items,
@@ -137,6 +149,7 @@ function stripe_create_checkout(array $items, string $success_url, string $cance
         'cancel_url'  => $cancel_url,
         'locale'      => 'fr',
     ];
+    // Pre-remplit l'email cote Stripe : evite de retaper et meilleure UX.
     if ($customer_email) $data['customer_email'] = $customer_email;
     return stripe_post('checkout/sessions', $data);
 }

@@ -8,6 +8,7 @@
  */
 
 // includes/header.php - en-tête commun (nav + ouverture <main>).
+// bootstrap.php est require_once ici : evite de l'oublier sur les pages qui n'incluent que le header.
 require_once __DIR__ . '/bootstrap.php';
 // Titre par defaut surcharge par chaque page si besoin avant l'include.
 $page_title = $page_title ?? 'Artify - Plateforme des Créateurs';
@@ -19,19 +20,25 @@ $base = $base ?? '';
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- Viewport mobile : indispensable pour le responsive (sinon zoom desktop par defaut). -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= h($page_title) ?></title>
+<!-- Polices Google : Playfair pour les titres, DM Sans pour le corps. -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= h($base) ?>css/style.css">
+<!-- defer : le JS s'execute apres le parsing HTML, pas de blocage du rendu. -->
 <script defer src="<?= h($base) ?>js/main.js"></script>
 </head>
 <body>
+<!-- Bandeau decoratif en haut de page (degrade ocre dans style.css). -->
 <div class="accent-strip"></div>
 <nav>
+  <!-- Logo cliquable qui ramene toujours a l'accueil. -->
   <a class="logo" href="<?= h($base) ?>index.php">
     <span class="logo-a">A</span>
     <span class="logo-text">Artify</span>
   </a>
+  <!-- Liens publics affiches a tous, masques en menu burger sur mobile (cf. main.js). -->
   <ul class="nav-links">
     <li><a href="<?= h($base) ?>index.php">Accueil</a></li>
     <li><a href="<?= h($base) ?>creations.php">Créations</a></li>
@@ -43,6 +50,7 @@ $base = $base ?? '';
   </ul>
   <!-- Recherche en GET : URL partageable et indexable. -->
   <form class="nav-search" action="<?= h($base) ?>recherche.php" method="get">
+    <!-- value pre-rempli pour garder le terme apres soumission. -->
     <input type="text" name="q" placeholder="Rechercher…" value="<?= h($_GET['q'] ?? '') ?>">
     <button type="submit" class="btn-ghost">OK</button>
   </form>
@@ -54,16 +62,20 @@ $base = $base ?? '';
     <?php elseif (is_artisan()): ?>
       <a class="btn-ghost" href="<?= h($base) ?>boutique.php">Ma boutique</a>
     <?php endif; ?>
+    <!-- Profil et deconnexion communs a tous les utilisateurs loggues. -->
     <a class="btn-ghost" href="<?= h($base) ?>profile.php">Profil</a>
     <a class="btn-primary" href="<?= h($base) ?>logout.php">Déconnexion</a>
   <?php else: ?>
+    <!-- Visiteur non logge : on propose login + inscription. -->
     <a class="btn-ghost" href="<?= h($base) ?>login_form.php">Se connecter</a>
     <a class="btn-primary" href="<?= h($base) ?>register_form.php">Créer un compte</a>
   <?php endif; ?>
   </div>
 </nav>
+<!-- Ouverture du conteneur principal, ferme dans footer.php. -->
 <main class="page-main">
 <?php /* Affichage des flash messages : flash_pop vide la pile pour eviter le doublon au refresh. */ ?>
 <?php foreach (flash_pop() as $f): ?>
+  <!-- Classe CSS dependante du type (success / error / info) pour la couleur du bandeau. -->
   <div class="flash flash-<?= h($f['type']) ?>"><?= h($f['msg']) ?></div>
 <?php endforeach; ?>

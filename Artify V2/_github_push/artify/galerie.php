@@ -10,6 +10,8 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Galerie - Artify';
 
 // Limite a 60 pour eviter une page interminable, suffisant pour donner un apercu de la diversite des creations.
+// JOIN obligatoire sur artisan pour pouvoir afficher le crediteur de chaque visuel.
+// Filtre est_publie = 1 : un visuel masque par l'artisan ne doit pas apparaitre en galerie.
 $items = $pdo->query(
   "SELECT g.id, g.image_url, g.titre, g.description, a.nom_boutique, a.id AS aid
      FROM galerie g JOIN artisan a ON a.id = g.artisan_id
@@ -30,10 +32,13 @@ include __DIR__ . '/includes/header.php';
   <div class="grid grid-3" style="margin-top:20px">
     <?php foreach ($items as $g): ?>
       <div class="card">
+        <?php // Fallback Unsplash si l'image n'est pas fournie en base. ?>
         <img class="thumb" src="<?= h(!empty($g['image_url']) ? $g['image_url'] : 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=600&h=400&fit=crop&q=80') ?>" alt="<?= h($g['titre'] ?: 'Sans titre') ?>" loading="lazy">
+        <?php // Affiche "Sans titre" si l'artisan n'en a pas defini, evite un h3 vide. ?>
         <h3><?= h($g['titre'] ?: 'Sans titre') ?></h3>
         <div class="meta">par <a href="artisan.php?id=<?= (int)$g['aid'] ?>"><?= h($g['nom_boutique']) ?></a></div>
         <?php if (!empty($g['description'])): ?>
+          <?php // Description bornee a 120 char pour uniformiser les cartes. ?>
           <p><?= h(mb_substr($g['description'], 0, 120)) ?></p>
         <?php endif; ?>
       </div>

@@ -17,9 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare("UPDATE contact SET traite = 1 - traite WHERE id = ?")->execute([$id]);
         flash_set('success', 'Statut mis à jour.');
     } elseif (($_POST['action'] ?? '') === 'delete') {
+        // Pas de FK sur contact : DELETE direct sans cascade.
         $pdo->prepare("DELETE FROM contact WHERE id = ?")->execute([$id]);
         flash_set('success', 'Message supprimé.');
     }
+    // PRG en conservant le filtre courant via http_build_query.
     redirect('contacts.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
@@ -29,6 +31,7 @@ $f = $_GET['f'] ?? '';
 $where = ''; $params = [];
 if ($f === 'nontr') { $where = "WHERE traite = 0"; }
 elseif ($f === 'tr') { $where = "WHERE traite = 1"; }
+// Tri composite : non-traites d'abord (traite ASC), puis recents d'abord.
 $msgs = $pdo->prepare("SELECT * FROM contact $where ORDER BY traite ASC, created_at DESC");
 $msgs->execute($params);
 $msgs = $msgs->fetchAll();
@@ -57,14 +60,17 @@ $msgs = $msgs->fetchAll();
   <?php foreach ($msgs as $m): ?>
     <tr>
       <td><?= h(date('d/m/Y H:i', strtotime($m['created_at']))) ?></td>
+      <?php // Bloc expediteur : nom en gras + mailto pour repondre en un clic. ?>
       <td>
         <strong><?= h($m['nom']) ?></strong><br>
         <a href="mailto:<?= h($m['email']) ?>" style="font-size:12px;color:var(--muted)"><?= h($m['email']) ?></a>
       </td>
       <td><?= h($m['sujet']) ?></td>
+      <?php // Message tronque a 280 caracteres pour ne pas exploser la largeur du tableau. ?>
       <td style="max-width:400px"><?= nl2br(h(mb_substr($m['message'], 0, 280))) ?><?= mb_strlen($m['message'])>280?'…':'' ?></td>
       <td><?= $m['traite'] ? '<span class="badge ok">traité</span>' : '<span class="badge warn">non traité</span>' ?></td>
       <td class="actions">
+        <?php // Bouton change de libelle selon l'etat : marquer traite OU rouvrir. ?>
         <form method="post">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="toggle">

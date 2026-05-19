@@ -6,34 +6,44 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Acces reserve aux utilisateurs connectes.
 require_login();
 $page_title = 'Changer mon mot de passe - Artify';
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF obligatoire pour cette operation sensible.
     csrf_check();
+    // Pas de trim sur les mots de passe : un espace en fin doit etre preserve.
     $old = $_POST['old_password'] ?? '';
     $new = $_POST['new_password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
 
+    // Longueur minimum 6 (en accord avec la regle d'inscription).
     if (strlen($new) < 6) $errors[] = "Le nouveau mot de passe doit faire au moins 6 caractères.";
+    // Confirmation pour eviter la faute de frappe qui locks le compte.
     if ($new !== $confirm) $errors[] = "La confirmation ne correspond pas.";
 
     // On exige l'ancien mot de passe meme si l'utilisateur est deja logge, pour empecher qu'une session volee permette de prendre le compte.
     if (!$errors) {
+        // Lecture du hash actuel pour comparaison constante via password_verify.
         $st = $pdo->prepare("SELECT mot_de_passe FROM utilisateur WHERE id = ?");
         $st->execute([current_user_id()]);
         $hash = $st->fetchColumn();
+        // password_verify : comparaison protegee contre les timing attacks.
         if (!$hash || !password_verify($old, $hash)) {
             $errors[] = "Ancien mot de passe incorrect.";
         }
     }
     // Bcrypt avec son cost par defaut, suffisant et coherent avec ce qui est utilise a l'inscription.
     if (!$errors) {
+        // PASSWORD_BCRYPT genere un sel aleatoire par hash, pas besoin de le stocker separement.
         $newHash = password_hash($new, PASSWORD_BCRYPT);
+        // WHERE id = current_user_id : limite l'update au compte courant.
         $pdo->prepare("UPDATE utilisateur SET mot_de_passe = ? WHERE id = ?")
             ->execute([$newHash, current_user_id()]);
         flash_set('success', 'Mot de passe modifié avec succès.');
+        // PRG pour eviter une replay du POST.
         redirect('profile.php');
     }
 }
@@ -45,6 +55,7 @@ include __DIR__ . '/includes/header.php';
   <?php foreach ($errors as $e): ?>
     <div class="flash flash-error"><?= h($e) ?></div>
   <?php endforeach; ?>
+  <?php // autocomplete=off pour ne pas suggerer l'ancien mot de passe stocke par le navigateur. ?>
   <form method="post" action="change_password.php" autocomplete="off">
     <?= csrf_field() ?>
     <div class="form-row"><label>Ancien mot de passe</label>

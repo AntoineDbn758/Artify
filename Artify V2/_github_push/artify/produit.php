@@ -9,9 +9,11 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Cast en int : sert aussi de validation, un id non numerique tombe a 0 et la requete renverra null.
 $id = (int)($_GET['id'] ?? 0);
 
 // On force est_publie=1 dans le WHERE pour qu'un produit en brouillon ne soit jamais accessible via URL directe.
+// JOIN obligatoires sur categorie et artisan, ces FK ne doivent jamais etre nulles dans les donnees.
 $st = $pdo->prepare(
   "SELECT p.*, c.nom AS categorie, a.nom_boutique, a.id AS aid,
           ip.url AS image_url
@@ -32,6 +34,7 @@ if (!$p) {
     include __DIR__ . '/includes/footer.php';
     exit;
 }
+// Titre dynamique pour le SEO et l'onglet navigateur.
 $page_title = $p['nom'] . ' - Artify';
 
 include __DIR__ . '/includes/header.php';
@@ -47,6 +50,7 @@ include __DIR__ . '/includes/header.php';
   <div>
     <h1><?= h($p['nom']) ?></h1>
     <span class="tag"><?= h($p['categorie']) ?></span>
+    <?php // Tag vert seulement si l'artisan a coche la personnalisation, utile pour cadeaux ou pieces uniques. ?>
     <?php if ($p['est_personnalisable']): ?>
       <span class="tag" style="background:#e6f4eb;color:#1e5a35">Personnalisable</span>
     <?php endif; ?>
@@ -69,6 +73,7 @@ include __DIR__ . '/includes/header.php';
       <?php if ($p['delai_fabrication_jours']): ?>
         <dt>Délai</dt><dd><?= (int)$p['delai_fabrication_jours'] ?> jours</dd>
       <?php endif; ?>
+      <?php // Stock zero affiche "Sur commande" pour ne pas decourager les visiteurs interesses. ?>
       <dt>Stock</dt><dd><?= (int)$p['stock'] > 0 ? (int)$p['stock'] . ' disponible(s)' : 'Sur commande' ?></dd>
     </dl>
     <?php // Le bouton Commander n'apparait que si du stock est dispo, sinon on suggere un contact direct artisan. ?>
@@ -77,10 +82,12 @@ include __DIR__ . '/includes/header.php';
       <?php if (current_user_id() !== null): ?>
         <form method="post" action="commande_new.php"
               style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <?php // Token CSRF obligatoire, verifie cote serveur dans commande_new.php. ?>
           <?= csrf_field() ?>
           <input type="hidden" name="produit_id" value="<?= (int)$p['id'] ?>">
           <label style="display:flex;align-items:center;gap:6px">
             Quantité
+            <?php // max plafonne au stock cote client, le serveur re-verifie pour eviter triche via devtools. ?>
             <input type="number" name="quantite" value="1" min="1" max="<?= (int)$p['stock'] ?>"
                    style="width:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px">
           </label>
@@ -91,6 +98,7 @@ include __DIR__ . '/includes/header.php';
         </p>
       <?php else: ?>
         <div style="margin-top:18px">
+          <?php // Le parametre next conserve l'URL initiale, login_form.php redirigera ici post-auth. ?>
           <a class="btn-primary"
              href="login_form.php?next=<?= h('produit.php?id=' . (int)$p['id']) ?>">Se connecter pour commander</a>
         </div>

@@ -12,16 +12,20 @@
 // Toutes les pages backoffice doivent inclure CE fichier (et _footer.php)
 // après avoir défini $page_title et $base = '../'.
 
+// Bootstrap : session, autoload, helpers, connexion PDO. Doit etre la premiere chose.
 require_once __DIR__ . '/../includes/bootstrap.php';
 // Verrou d'acces : tout non-admin est redirige avant de voir quoi que ce soit.
 require_role('admin');
 
+// Titre par defaut si la page appelante n'en a pas defini un avant l'include.
 $page_title = $page_title ?? 'Backoffice - Artify';
+// $base remonte d'un cran pour acceder aux assets du front depuis /backoffice/.
 $base = '../';
 
 // Sert a savoir quel item de la sidebar mettre en surbrillance.
 $current = basename($_SERVER['SCRIPT_NAME'] ?? '');
 
+// Header public reutilise pour conserver la nav haute et le branding.
 include __DIR__ . '/../includes/header.php';
 
 // Surcharge CSS dédiée admin (chargée APRÈS style.css du header)
@@ -30,6 +34,7 @@ include __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?= h($base) ?>backoffice/css/admin.css">
 <?php
 // Items de la sidebar : [file => [label, icone]]
+// L'ordre du tableau definit l'ordre d'affichage dans la sidebar.
 $nav = [
   'index.php'      => ['Dashboard',     'DB'],
   'users.php'      => ['Utilisateurs',  'US'],
@@ -46,6 +51,7 @@ $nav = [
   'mentions.php'   => ['Mentions',      'ML'],
 ];
 ?>
+<?php // Shell flex : sidebar fixe a gauche, contenu scrollable a droite. ?>
 <div class="admin-shell">
   <aside class="admin-sidebar">
     <h2>Admin Artify</h2>
@@ -55,8 +61,10 @@ $nav = [
         <?php if ($file === '_sep'): ?>
           <li class="sep"></li>
         <?php else:
+          // Surbrillance de l'item courant en comparant au script en cours.
           $active = ($current === $file) ? ' class="active"' : ''; ?>
           <li><a href="<?= h($file) ?>"<?= $active ?>>
+            <?php // Le span .ico affiche les 2 lettres d'abreviation (DB, US, ...). ?>
             <span class="ico"><?= h($info[1]) ?></span>
             <span class="lbl"><?= h($info[0]) ?></span>
           </a></li>
@@ -64,4 +72,5 @@ $nav = [
       <?php endforeach; ?>
     </ul>
   </aside>
+  <?php // .admin-content : la page appelante injecte son markup entre ici et _footer.php. ?>
   <section class="admin-content">

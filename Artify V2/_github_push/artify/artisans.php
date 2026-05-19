@@ -10,6 +10,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Artisans - Artify';
 
 // On masque les artisans dont le compte a ete suspendu, mais on garde leurs produits accessibles en cache via produit.php.
+// Tri alphabetique sur nom_boutique pour une navigation predictible dans l'annuaire.
 $artisans = $pdo->query(
   "SELECT a.id, a.nom_boutique, a.specialite, a.description, a.note_moyenne, a.nb_avis,
           u.prenom, u.nom, u.ville
@@ -19,6 +20,7 @@ $artisans = $pdo->query(
 )->fetchAll();
 
 // Photo d'atelier par spécialité (Unsplash, URLs vérifiées HTTP 200).
+// Mapping cle exacte = libelle BDD, attention a l'accent sur Ceramique et Ebenisterie.
 $ATELIER_PHOTOS = [
     'Bijouterie'   => 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=600&h=400&fit=crop&q=80',
     'Céramique'    => 'https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=600&h=400&fit=crop&q=80',
@@ -29,6 +31,7 @@ $ATELIER_PHOTOS = [
     'Peinture'     => 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=600&h=400&fit=crop&q=80',
     'Illustration' => 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&q=80',
 ];
+// Fallback generique pour les specialites absentes du mapping (nouveau metier non encore reference).
 $DEFAULT_ATELIER = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80';
 
 include __DIR__ . '/includes/header.php';
@@ -43,6 +46,7 @@ include __DIR__ . '/includes/header.php';
   <div class="grid grid-3" style="margin-top:20px">
     <?php // Mapping specialite vers photo Unsplash thematique, avec fallback si la specialite n'est pas connue.
     foreach ($artisans as $a):
+        // Operateur null coalescing : retombe sur la photo par defaut si la specialite n'est pas mappee.
         $atelier = $ATELIER_PHOTOS[$a['specialite']] ?? $DEFAULT_ATELIER;
     ?>
       <a class="card" href="artisan.php?id=<?= (int)$a['id'] ?>" style="color:inherit">
@@ -51,7 +55,9 @@ include __DIR__ . '/includes/header.php';
         <div class="meta">
           <?= h($a['specialite'] ?: '-') ?><?= $a['ville'] ? ' · ' . h($a['ville']) : '' ?>
         </div>
+        <?php // Coupe a 120 char + ellipse si plus long, pour conserver la hauteur de carte. ?>
         <p><?= h(mb_substr($a['description'] ?? '', 0, 120)) ?><?= mb_strlen($a['description'] ?? '') > 120 ? '…' : '' ?></p>
+        <?php // Note masquee si pas d'avis pour eviter d'afficher 0/5 sur les nouveaux artisans. ?>
         <?php if ((float)$a['note_moyenne'] > 0): ?>
           <div class="meta">Note : <?= number_format((float)$a['note_moyenne'], 1) ?> / 5 (<?= (int)$a['nb_avis'] ?>)</div>
         <?php endif; ?>

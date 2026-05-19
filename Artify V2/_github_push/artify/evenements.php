@@ -10,6 +10,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Événements - Artify';
 
 // On filtre sur date_debut >= NOW() pour ne jamais lister un evenement deja passe, meme s'il est encore publie en base.
+// Tri ASC : le prochain evenement remonte en haut, comportement attendu d'un agenda.
 $events = $pdo->query(
   "SELECT e.id, e.titre, e.description, e.lieu, e.ville, e.date_debut, e.date_fin,
           e.prix_entree, e.capacite_max, e.image_url, a.nom_boutique
@@ -19,6 +20,7 @@ $events = $pdo->query(
     ORDER BY e.date_debut ASC"
 )->fetchAll();
 
+// Visuel par defaut (Unsplash) utilise si l'artisan n'a pas charge sa propre photo d'evenement.
 $_DEFAULT_EVT = 'https://images.unsplash.com/photo-1559563458-527698bf5295?w=800&h=450&fit=crop&q=80';
 
 include __DIR__ . '/includes/header.php';
@@ -33,16 +35,20 @@ include __DIR__ . '/includes/header.php';
   <div class="grid grid-2" style="margin-top:20px">
     <?php foreach ($events as $e): ?>
       <a class="card" href="evenement.php?id=<?= (int)$e['id'] ?>" style="color:inherit">
+        <?php // Photo specifique a l'evenement si dispo, sinon visuel generique. ?>
         <img class="thumb" src="<?= h($e['image_url'] ?: $_DEFAULT_EVT) ?>"
              alt="<?= h($e['titre']) ?>" loading="lazy">
         <h3><?= h($e['titre']) ?></h3>
         <div class="meta">
+          <?php // Format FR jj/mm/aaaa hh:mm depuis le DATETIME MySQL. ?>
           <?= h(date('d/m/Y H:i', strtotime($e['date_debut']))) ?>
           <?= $e['lieu'] ? ' · ' . h($e['lieu']) : '' ?>
           <?= $e['ville'] ? ' (' . h($e['ville']) . ')' : '' ?>
         </div>
+        <?php // Description tronquee a 140 char, ellipse ajoutee uniquement si on a coupe. ?>
         <p><?= h(mb_substr($e['description'] ?? '', 0, 140)) ?><?= mb_strlen($e['description'] ?? '') > 140 ? '…' : '' ?></p>
         <div class="meta">Organisé par <?= h($e['nom_boutique']) ?></div>
+        <?php // Affiche "Gratuit" quand prix_entree = 0 pour clarte UX. ?>
         <div class="price"><?= $e['prix_entree'] > 0 ? number_format((float)$e['prix_entree'], 2, ',', ' ') . ' €' : 'Gratuit' ?></div>
       </a>
     <?php endforeach; ?>

@@ -10,6 +10,7 @@ require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Garde CSRF avant toute mutation.
     csrf_check();
     $contenu = trim($_POST['contenu'] ?? '');
     if ($contenu) {
@@ -17,13 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Volontairement pas de versioning ici, on ecrase l'ancien contenu.
         $existing = $pdo->query("SELECT id FROM mention_legale ORDER BY updated_at DESC LIMIT 1")->fetch();
         if ($existing) {
+            // Cas standard apres premier remplissage : on rafraichit l'unique ligne.
             $pdo->prepare("UPDATE mention_legale SET contenu = ? WHERE id = ?")
                 ->execute([$contenu, (int)$existing['id']]);
         } else {
+            // Premier passage : aucune ligne, on cree celle qui sera toujours updated par la suite.
             $pdo->prepare("INSERT INTO mention_legale (contenu) VALUES (?)")->execute([$contenu]);
         }
         flash_set('success', 'Mentions légales mises à jour.');
     } else {
+        // Refus du contenu vide : on ne veut pas effacer accidentellement les mentions.
         flash_set('error', 'Contenu vide.');
     }
     redirect('mentions.php');
@@ -36,13 +40,16 @@ $ml = $pdo->query("SELECT * FROM mention_legale ORDER BY updated_at DESC LIMIT 1
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Mentions légales</div>
 <h1>Gestion des mentions légales</h1>
 
+<?php // Card unique contenant le textarea pre-rempli avec le contenu existant. ?>
 <div class="admin-card" style="max-width:880px">
   <form method="post">
     <?= csrf_field() ?>
+    <?php // Le ?? '' evite un warning quand $ml est null (premier passage). ?>
     <div class="form-row"><label>Contenu</label>
       <textarea name="contenu" required style="min-height:340px"><?= h($ml['contenu'] ?? '') ?></textarea></div>
     <div class="form-actions"><button class="btn-primary" type="submit">Enregistrer</button></div>
   </form>
+  <?php // Affichage de la date de derniere edition seulement si une ligne existe. ?>
   <?php if ($ml): ?>
     <p class="meta" style="margin-top:12px;font-size:13px;color:var(--muted)">
       Dernière mise à jour : <?= h(date('d/m/Y H:i', strtotime($ml['updated_at']))) ?>

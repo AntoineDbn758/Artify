@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// require_role bloque non-artisan, role admin n'est pas exempte ici.
 require_role('artisan');
 $page_title = 'Ma boutique - Artify';
 
@@ -25,12 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $desc = trim($_POST['description'] ?? '');
     $site = trim($_POST['site_web'] ?? '');
     $insta = trim($_POST['instagram'] ?? '');
+    // Nom obligatoire : invariant metier, une boutique sans nom ne peut pas s'afficher dans l'annuaire.
     if ($nom) {
+        // WHERE id = artisan courant : impossible de modifier la boutique d'un autre artisan.
         $pdo->prepare(
           "UPDATE artisan SET nom_boutique=?, specialite=?, description=?, site_web=?, instagram=?
             WHERE id = ?"
         )->execute([$nom, $spec ?: null, $desc ?: null, $site ?: null, $insta ?: null, (int)$artisan['id']]);
         flash_set('success', 'Boutique mise à jour.');
+        // PRG pour purger le POST de l'URL.
         redirect('boutique.php');
     }
 }
@@ -38,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 $artisan = current_artisan($pdo);
 
 // On liste TOUS les produits de l'artisan, publies ou pas, car c'est sa vue d'admin (contrairement aux pages publiques).
+// Pas de filtre est_publie : la vue boutique doit inclure les brouillons que l'artisan n'a pas encore publies.
 $produits = $pdo->prepare(
   "SELECT p.id, p.nom, p.prix, p.stock, p.est_publie, c.nom AS categorie
      FROM produit p JOIN categorie c ON c.id = p.categorie_id
@@ -45,6 +50,7 @@ $produits = $pdo->prepare(
 $produits->execute([(int)$artisan['id']]);
 $produits = $produits->fetchAll();
 
+// Idem pour les evenements : on remonte les passes/futurs et brouillons inclus.
 $evts = $pdo->prepare(
   "SELECT id, titre, date_debut, est_publie FROM evenement
     WHERE artisan_id = ? ORDER BY date_debut DESC");
@@ -93,6 +99,7 @@ include __DIR__ . '/includes/header.php';
         <td><?= $p['est_publie'] ? 'oui' : 'non' ?></td>
         <td>
           <a class="btn-ghost btn-small" href="produit_edit.php?id=<?= (int)$p['id'] ?>">Éditer</a>
+          <?php // onsubmit confirm JS pour eviter les deletes accidentels, la veritable verif reste cote serveur. ?>
           <form method="post" action="produit_delete.php" onsubmit="return confirm('Supprimer ?')" style="display:inline">
             <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">

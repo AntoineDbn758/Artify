@@ -7,11 +7,14 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Acces reserve aux artisans.
 require_role('artisan');
 $page_title = 'Nouvel événement - Artify';
 $artisan = current_artisan($pdo);
+// Garde : un compte artisan sans fiche boutique ne peut pas attacher un evenement.
 if (!$artisan) { flash_set('error', 'Aucune boutique.'); redirect('profile.php'); }
 
+// $f : valeurs par defaut fusionnees avec POST pour repopuler le formulaire en cas d'erreur.
 $errors = []; $f = $_POST + ['titre'=>'','description'=>'','lieu'=>'','ville'=>'','date_debut'=>'','date_fin'=>'','prix_entree'=>'0','capacite_max'=>''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,27 +22,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titre = trim($_POST['titre'] ?? '');
     $dd    = $_POST['date_debut'] ?? '';
     if (!$titre) $errors[] = "Titre requis.";
+    // strtotime renvoie false sur une date invalide, ce qui couvre les cas "vide" et "format casse".
     if (!$dd || !strtotime($dd)) $errors[] = "Date de début invalide.";
 
     // est_publie=1 par defaut : un evenement cree ici est immediatement visible, pas de workflow de validation par admin pour le moment.
     if (!$errors) {
         $df = $_POST['date_fin'] ?? '';
+        // artisan_id pris en session, pas en POST, pour empecher de creer un evenement sous une autre boutique.
         $pdo->prepare(
           "INSERT INTO evenement (artisan_id, titre, description, lieu, ville, date_debut, date_fin,
                                   capacite_max, prix_entree, est_publie)
            VALUES (?,?,?,?,?,?,?,?,?,1)"
         )->execute([
             (int)$artisan['id'], $titre,
+            // Les champs optionnels vides sont stockes a NULL plutot qu'en chaine vide, plus propre cote schema.
             trim($_POST['description'] ?? '') ?: null,
             trim($_POST['lieu'] ?? '') ?: null,
             trim($_POST['ville'] ?? '') ?: null,
             // Normalisation : datetime-local renvoie au format ISO local, on repasse en MySQL DATETIME pour eviter les surprises de formatage.
             date('Y-m-d H:i:s', strtotime($dd)),
+            // date_fin optionnelle, null si non fournie.
             $df ? date('Y-m-d H:i:s', strtotime($df)) : null,
+            // Capacite max nulle = pas de limite affichee.
             $_POST['capacite_max'] !== '' ? (int)$_POST['capacite_max'] : null,
             (float)($_POST['prix_entree'] ?? 0),
         ]);
         flash_set('success', 'Événement créé.');
+        // PRG.
         redirect('boutique.php');
     }
 }

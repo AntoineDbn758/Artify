@@ -6,9 +6,11 @@
  * depuis le backoffice sans toucher au code.
  */
 
+// bootstrap : session, PDO, helpers (h(), require_login()...).
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'FAQ - Artify';
 // On trie par ordre puis par id : ordre permet a l'admin de prioriser certaines questions, id sert de tie-breaker stable.
+// est_actif = 1 permet a l'admin de masquer une question sans la supprimer.
 $faqs = $pdo->query("SELECT question, reponse FROM faq WHERE est_actif = 1 ORDER BY ordre ASC, id ASC")->fetchAll();
 include __DIR__ . '/includes/header.php';
 ?>
@@ -22,7 +24,9 @@ include __DIR__ . '/includes/header.php';
   <div style="margin-top:20px">
     <?php foreach ($faqs as $f): ?>
       <div class="card" style="margin-bottom:14px">
+        <?php // h() echappe le contenu, l'admin ne peut donc pas injecter de HTML meme en mettant des balises. ?>
         <h3><?= h($f['question']) ?></h3>
+        <?php // nl2br + h pour convertir les retours a la ligne en <br> tout en gardant l'echappement HTML. ?>
         <p><?= nl2br(h($f['reponse'])) ?></p>
       </div>
     <?php endforeach; ?>

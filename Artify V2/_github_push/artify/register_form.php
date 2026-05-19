@@ -16,6 +16,7 @@ include __DIR__ . '/includes/header.php';
   <h1>Créer un compte</h1>
   <p style="margin-bottom:14px">Rejoignez la communauté Artify, visiteur ou artisan.</p>
 
+  <?php // Codes 1/2/3 mappes sur les messages d'erreur, traduction d'un enum URL en libelle UI. ?>
   <?php if ($err === '1'): ?>
     <div class="flash flash-error">Cet email est déjà utilisé.</div>
   <?php elseif ($err === '2'): ?>
@@ -24,7 +25,9 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-error">Tous les champs obligatoires doivent être remplis.</div>
   <?php endif; ?>
 
+  <?php // POST traite par inscription.php : creation utilisateur + creation artisan si role=artisan. ?>
   <form method="post" action="inscription.php" autocomplete="on">
+    <?php // Token CSRF obligatoire meme en creation de compte, evite les inscriptions automatiques. ?>
     <?= csrf_field() ?>
     <div class="form-row">
       <label>Nom</label>
@@ -38,10 +41,12 @@ include __DIR__ . '/includes/header.php';
       <label>Email</label>
       <input type="email" name="email" required>
     </div>
+    <?php // minlength=6 cote HTML pour UX immediate, la regle est aussi recontrolee serveur. ?>
     <div class="form-row">
       <label>Mot de passe</label>
       <input type="password" name="password" required minlength="6">
     </div>
+    <?php // Champ confirm pour eviter une faute de frappe qui lock le compte. ?>
     <div class="form-row">
       <label>Confirmer le mot de passe</label>
       <input type="password" name="password_confirm" required minlength="6">
@@ -58,6 +63,7 @@ include __DIR__ . '/includes/header.php';
       <label>Nom de boutique (si artisan)</label>
       <input type="text" name="nom_boutique" placeholder="Ex. Atelier de Marie">
     </div>
+    <?php // Checkbox CGU obligatoire (required + check serveur), pre-requis legal RGPD/CNIL. ?>
     <div class="form-row" style="font-size:13px;color:var(--mid)">
       <label><input type="checkbox" name="cgu" required style="width:auto;margin-right:6px">
       J'accepte les <a href="cgu.php">CGU</a> et les <a href="mentions.php">mentions légales</a>.</label>

@@ -8,10 +8,13 @@
  */
 
 // index.php - Page d'accueil Artify (server-rendered).
+// bootstrap initialise la connexion PDO, la session et les helpers globaux (h(), current_user(), etc.).
 require_once __DIR__ . '/includes/bootstrap.php';
+// Titre injecte dans le <title> par header.php.
 $page_title = 'Artify - Plateforme des Créateurs';
 
 // On ne remonte que les produits publies, avec leur image marquee comme principale via LEFT JOIN (NULL si l'artisan n'en a pas encore mis).
+// L'ordre desc par created_at garde la home "fraiche" sans gestion editoriale manuelle.
 $produits = $pdo->query(
   "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie, a.nom_boutique,
           ip.url AS image_url
@@ -25,6 +28,7 @@ $produits = $pdo->query(
 )->fetchAll();
 
 // On exclut les artisans dont le compte utilisateur a ete desactive depuis le backoffice.
+// Filtre porte sur utilisateur.est_actif et non sur artisan, c'est le compte qui fait foi.
 $artisans = $pdo->query(
   "SELECT a.id, a.nom_boutique, a.specialite, a.description, u.prenom, u.nom, u.ville
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
@@ -34,6 +38,7 @@ $artisans = $pdo->query(
 )->fetchAll();
 
 // Uniquement les evenements a venir, tries du plus proche au plus lointain.
+// date_debut >= NOW() exclut les sessions deja passees, ASC met le prochain en premier.
 $events = $pdo->query(
   "SELECT e.id, e.titre, e.lieu, e.ville, e.date_debut, e.prix_entree
      FROM evenement e
@@ -42,6 +47,7 @@ $events = $pdo->query(
     LIMIT 4"
 )->fetchAll();
 
+// Le header doit etre inclus apres les requetes pour pouvoir y exposer $page_title.
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -65,10 +71,13 @@ include __DIR__ . '/includes/header.php';
   <?php else: ?>
     <div class="grid grid-3">
       <?php foreach ($produits as $p): ?>
+        <?php // Cast en int sur l'id meme s'il vient de la base, par habitude defensive dans les URLs. ?>
         <a class="card" href="produit.php?id=<?= (int)$p['id'] ?>" style="color:inherit">
+          <?php // Fallback Unsplash si l'artisan n'a pas encore charge d'image principale. ?>
           <img class="thumb" src="<?= h($p['image_url'] ?: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80') ?>" alt="<?= h($p['nom']) ?>" loading="lazy">
           <h3><?= h($p['nom']) ?></h3>
           <div class="meta"><?= h($p['nom_boutique']) ?> · <?= h($p['categorie']) ?></div>
+          <?php // Format francais : virgule decimale et espace comme separateur de milliers. ?>
           <div class="price"><?= number_format((float)$p['prix'], 2, ',', ' ') ?> &euro;</div>
         </a>
       <?php endforeach; ?>
@@ -90,6 +99,7 @@ include __DIR__ . '/includes/header.php';
           <img class="thumb" src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80" alt="<?= h($a['nom_boutique']) ?>" loading="lazy">
           <h3><?= h($a['nom_boutique']) ?></h3>
           <div class="meta"><?= h($a['specialite'] ?: '-') ?><?= $a['ville'] ? ' · ' . h($a['ville']) : '' ?></div>
+          <?php // Coupe a 110 caracteres pour homogeneiser la hauteur des cartes. ?>
           <p><?= h(mb_substr($a['description'] ?? '', 0, 110)) ?></p>
         </a>
       <?php endforeach; ?>
@@ -110,10 +120,12 @@ include __DIR__ . '/includes/header.php';
         <a class="card" href="evenement.php?id=<?= (int)$e['id'] ?>" style="color:inherit">
           <h3><?= h($e['titre']) ?></h3>
           <div class="meta">
+            <?php // strtotime depuis le DATETIME MySQL puis reformate en jj/mm/aaaa hh:mm pour lecture FR. ?>
             <?= h(date('d/m/Y H:i', strtotime($e['date_debut']))) ?>
             <?= $e['lieu'] ? ' · ' . h($e['lieu']) : '' ?>
             <?= $e['ville'] ? ' (' . h($e['ville']) . ')' : '' ?>
           </div>
+          <?php // Prix nul affiche "Gratuit" plutot que "0,00 EUR" pour eviter l'ambiguite. ?>
           <div class="price"><?= $e['prix_entree'] > 0 ? number_format((float)$e['prix_entree'], 2, ',', ' ') . ' €' : 'Gratuit' ?></div>
         </a>
       <?php endforeach; ?>

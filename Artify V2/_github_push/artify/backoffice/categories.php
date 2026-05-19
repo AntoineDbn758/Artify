@@ -12,9 +12,13 @@ require_once __DIR__ . '/_header.php';
 // Slug URL-safe : retrait des accents via iconv, remplacement de tout caractere
 // non alphanumerique par un tiret, puis trim des tirets aux bords.
 function slugify(string $s): string {
+    // Lowercase Unicode-safe avant translit ASCII.
     $s = mb_strtolower(trim($s), 'UTF-8');
+    // iconv TRANSLIT : "Céramique" -> "Ceramique" (suppression accents).
     $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+    // Collapse de tout caractere non a-z0-9 en un tiret.
     $s = preg_replace('/[^a-z0-9]+/', '-', $s);
+    // Trim des tirets aux bords ("-poterie-" -> "poterie").
     return trim($s ?? '', '-');
 }
 
@@ -24,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $nom = trim($_POST['nom'] ?? '');
         $slug = trim($_POST['slug'] ?? '');
+        // Le nom est obligatoire ; on degage tot avec un flash error.
         if (!$nom) { flash_set('error', 'Nom requis.'); redirect('categories.php'); }
         // Slug auto si l'admin n'en a pas saisi un manuellement.
         if (!$slug) $slug = slugify($nom);
@@ -31,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("INSERT INTO categorie (nom, slug) VALUES (?, ?)")->execute([$nom, $slug]);
             flash_set('success', 'Catégorie créée.');
         } catch (\Throwable $e) {
+            // Index unique sur slug : doublon => exception PDO interceptee ici.
             flash_set('error', 'Erreur (slug déjà utilisé ?).');
         }
     } elseif ($action === 'update') {
@@ -38,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nom = trim($_POST['nom'] ?? '');
         $slug = trim($_POST['slug'] ?? '');
         if (!$nom) { flash_set('error', 'Nom requis.'); redirect('categories.php'); }
+        // Meme logique de slug auto en update qu'en create.
         if (!$slug) $slug = slugify($nom);
         try {
             $pdo->prepare("UPDATE categorie SET nom = ?, slug = ? WHERE id = ?")
@@ -87,7 +94,8 @@ $rows = $pdo->query(
 <table class="adm">
   <thead><tr><th>#</th><th>Nom</th><th>Slug</th><th>Produits</th><th class="actions">Actions</th></tr></thead>
   <tbody>
-  <?php foreach ($rows as $c): ?>
+  <?php // Chaque ligne porte son propre form d'edition inline (nom + slug). ?>
+<?php foreach ($rows as $c): ?>
     <tr>
       <td><?= (int)$c['id'] ?></td>
       <td>
@@ -103,6 +111,7 @@ $rows = $pdo->query(
       <td><code><?= h($c['slug']) ?></code></td>
       <td><?= (int)$c['nb'] ?></td>
       <td class="actions">
+        <?php // Bouton Suppr desactive cote UI tant que des produits referencent la categorie. ?>
         <form method="post" onsubmit="return confirm('Supprimer la catégorie « <?= h($c['nom']) ?> » ?')">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="delete">

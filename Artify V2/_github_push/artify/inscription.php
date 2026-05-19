@@ -13,8 +13,10 @@ require_once __DIR__ . '/includes/bootstrap.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('register_form.php');
 }
+// Verif CSRF avant tout traitement : protege contre la soumission cross-site.
 csrf_check();
 
+// trim() partout pour eviter qu'un espace traine dans l'email/nom et casse l'unicite.
 $nom              = trim($_POST['nom'] ?? '');
 $prenom           = trim($_POST['prenom'] ?? '');
 $email            = trim($_POST['email'] ?? '');
@@ -24,9 +26,11 @@ $password_confirm = $_POST['password_confirm'] ?? '';
 // jamais admin meme si quelqu'un trafique le formulaire.
 $role             = ($_POST['role'] ?? 'visiteur') === 'artisan' ? 'artisan' : 'visiteur';
 
+// Champs obligatoires : on garde une erreur generique (err=3) pour ne pas detailler.
 if (!$nom || !$prenom || !$email || !$password) {
     redirect('register_form.php?err=3');
 }
+// Verification que les deux mots de passe correspondent (double saisie cote formulaire).
 if ($password !== $password_confirm) {
     redirect('register_form.php?err=2');
 }
@@ -36,20 +40,24 @@ if ($password !== $password_confirm) {
 $st = $pdo->prepare("SELECT id FROM utilisateur WHERE email = ? LIMIT 1");
 $st->execute([$email]);
 if ($st->fetch()) {
+    // err=1 = email deja pris (sera mappe en message dans register_form.php).
     redirect('register_form.php?err=1');
 }
 
 // BCRYPT inclut le sel, on ne stocke jamais le mot de passe en clair.
 $hash = password_hash($password, PASSWORD_BCRYPT);
+// INSERT principal : creation de l'utilisateur en base.
 $pdo->prepare("INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, role)
                VALUES (?, ?, ?, ?, ?)")
     ->execute([$nom, $prenom, $email, $hash, $role]);
+// lastInsertId() pour pouvoir lier la fiche artisan ou remplir la session juste apres.
 $userId = (int)$pdo->lastInsertId();
 
 // Si artisan, on cree la fiche boutique liee dans la foulee
 // pour eviter un etat intermediaire sans boutique.
 if ($role === 'artisan') {
     $boutique = trim($_POST['nom_boutique'] ?? '');
+    // Fallback prenom + nom si l'artisan n'a pas choisi de nom de boutique.
     if (!$boutique) $boutique = $prenom . ' ' . $nom;
     $pdo->prepare("INSERT INTO artisan (utilisateur_id, nom_boutique)
                    VALUES (?, ?)")->execute([$userId, $boutique]);
@@ -57,8 +65,10 @@ if ($role === 'artisan') {
 
 // Regeneration de l'ID de session apres login pour contrer la session fixation.
 session_regenerate_id(true);
+// On hydrate la session : evite de relire la BDD sur chaque page pour les infos de base.
 $_SESSION['user_id']   = $userId;
 $_SESSION['user_nom']  = $prenom . ' ' . $nom;
 $_SESSION['user_role'] = $role;
+// Flash de bienvenue affiche par header.php au prochain chargement.
 flash_set('success', 'Compte créé. Bienvenue sur Artify !');
 redirect('index.php');

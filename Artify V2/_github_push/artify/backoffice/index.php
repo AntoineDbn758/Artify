@@ -32,12 +32,15 @@ $counts = [
 $cmd_stats = $pdo->query(
   "SELECT statut, COUNT(*) AS n FROM commande GROUP BY statut"
 )->fetchAll();
+// Total aggrege cote PHP plutot qu'une seconde requete : array_column extrait la colonne n.
 $cmd_total = array_sum(array_column($cmd_stats, 'n'));
 
 // Dernière activité : 5 dernières inscriptions et 5 derniers contacts
+// LIMIT 5 + ORDER BY created_at DESC : flux "feed" du dashboard.
 $last_users = $pdo->query(
   "SELECT id, prenom, nom, email, role, created_at FROM utilisateur ORDER BY created_at DESC LIMIT 5"
 )->fetchAll();
+// Meme principe pour les contacts : flux des 5 plus recents messages.
 $last_contacts = $pdo->query(
   "SELECT id, nom, sujet, traite, created_at FROM contact ORDER BY created_at DESC LIMIT 5"
 )->fetchAll();
@@ -46,11 +49,13 @@ $last_contacts = $pdo->query(
 <h1>Dashboard</h1>
 <p>Vue d'ensemble de la plateforme Artify - données en temps réel.</p>
 
+<?php // Grille de cartes : chaque carte est un lien direct vers la section concernee. ?>
 <div class="stat-grid">
   <a class="stat-card" href="users.php">
     <div class="num"><?= $counts['users_total'] ?></div>
     <div class="lbl">Utilisateurs</div>
   </a>
+  <?php // Lien preselectionne sur le filtre role=artisan de la page users.php. ?>
   <a class="stat-card info" href="users.php?role=artisan">
     <div class="num"><?= $counts['users_artisan'] ?></div>
     <div class="lbl">Comptes artisans</div>
@@ -59,10 +64,12 @@ $last_contacts = $pdo->query(
     <div class="num"><?= $counts['users_visiteur'] ?></div>
     <div class="lbl">Comptes visiteurs</div>
   </a>
+  <?php // Format ratio "verifies/total" pour montrer la couverture moderation. ?>
   <a class="stat-card success" href="artisans.php">
     <div class="num"><?= $counts['artisans_verifies'] ?>/<?= $counts['artisans'] ?></div>
     <div class="lbl">Artisans vérifiés</div>
   </a>
+  <?php // Idem pour les produits : ratio publies/total. ?>
   <a class="stat-card" href="produits.php">
     <div class="num"><?= $counts['produits_publies'] ?>/<?= $counts['produits'] ?></div>
     <div class="lbl">Produits publiés</div>
@@ -90,6 +97,7 @@ $last_contacts = $pdo->query(
   </a>
 </div>
 
+<?php // Bloc 2 colonnes : repartition commandes a gauche, dernieres inscriptions a droite. ?>
 <div class="grid grid-2" style="gap:24px">
   <div class="admin-card">
     <h3>Commandes par statut</h3>
@@ -113,6 +121,7 @@ $last_contacts = $pdo->query(
     <?php endif; ?>
   </div>
 
+  <?php // Carte "feed" : les 5 derniers utilisateurs inscrits. ?>
   <div class="admin-card">
     <h3>Dernières inscriptions</h3>
     <?php if (!$last_users): ?>
@@ -121,6 +130,7 @@ $last_contacts = $pdo->query(
       <table class="adm">
         <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Date</th></tr></thead>
         <tbody>
+        <?php // Une classe role-xxx differente par role : style colore via admin.css. ?>
         <?php foreach ($last_users as $u): ?>
           <tr>
             <td><?= h(trim(($u['prenom'] ?? '') . ' ' . ($u['nom'] ?? ''))) ?></td>
@@ -135,6 +145,7 @@ $last_contacts = $pdo->query(
   </div>
 </div>
 
+<?php // Carte pleine largeur sous la grille a 2 colonnes : derniers contacts. ?>
 <div class="admin-card" style="margin-top:18px">
   <h3>Derniers messages de contact</h3>
   <?php if (!$last_contacts): ?>
@@ -143,6 +154,7 @@ $last_contacts = $pdo->query(
     <table class="adm">
       <thead><tr><th>De</th><th>Sujet</th><th>Statut</th><th>Reçu le</th><th class="actions"></th></tr></thead>
       <tbody>
+      <?php // Badge vert si traite, jaune sinon : signal visuel pour le support. ?>
       <?php foreach ($last_contacts as $c): ?>
         <tr>
           <td><?= h($c['nom']) ?></td>

@@ -8,12 +8,14 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Mentions légales - Artify';
 // On lit la derniere ligne mise a jour, meme si en theorie la table n'en contient qu'une seule.
+// Garde de securite : si plusieurs lignes existent par erreur, on prend la plus recente.
 $ml = $pdo->query("SELECT contenu, updated_at FROM mention_legale ORDER BY updated_at DESC LIMIT 1")->fetch();
 include __DIR__ . '/includes/header.php';
 ?>
 <div class="crumb"><a href="index.php">Accueil</a> &rsaquo; Mentions légales</div>
 <h1>Mentions légales</h1>
 
+<?php // Fallback si la table est vide : version statique pour ne jamais afficher une page legale vide. ?>
 <?php if (!$ml): ?>
   <div class="card">
     <h3>Éditeur</h3>
@@ -33,7 +35,9 @@ include __DIR__ . '/includes/header.php';
   </div>
 <?php else: ?>
   <div class="card">
+    <?php // h() echappe puis nl2br conserve les retours a la ligne saisis par l'admin. ?>
     <?= nl2br(h($ml['contenu'])) ?>
+    <?php // Date de derniere modification visible pour transparence RGPD. ?>
     <p class="meta" style="margin-top:14px">Dernière mise à jour : <?= h(date('d/m/Y', strtotime($ml['updated_at']))) ?></p>
   </div>
 <?php endif; ?>

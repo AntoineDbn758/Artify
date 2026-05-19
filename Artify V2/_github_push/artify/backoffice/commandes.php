@@ -46,6 +46,7 @@ $view = (int)($_GET['view'] ?? 0);
 
 // Mode fiche : ?view=<id> bascule du listing vers le detail (en-tete + lignes).
 if ($view > 0) {
+    // JOIN sur utilisateur et artisan pour resoudre client et vendeur en une passe.
     $cmd = $pdo->prepare(
       "SELECT c.*, u.prenom, u.nom, u.email, a.nom_boutique
          FROM commande c
@@ -56,6 +57,7 @@ if ($view > 0) {
     $cmd->execute([$view]);
     $cmd = $cmd->fetch();
     if ($cmd) {
+        // Lignes de commande detaillees : JOIN sur produit pour avoir le libelle.
         $lignes = $pdo->prepare(
           "SELECT lc.*, p.nom AS produit_nom
              FROM ligne_commande lc
@@ -68,7 +70,9 @@ if ($view > 0) {
 }
 
 $where = []; $params = [];
+// Filtre statut applique uniquement si valeur dans la liste blanche.
 if (in_array($filter, $STATUTS, true)) { $where[] = "c.statut = ?"; $params[] = $filter; }
+// Meme JOIN qu'en mode fiche pour avoir client + vendeur dans le listing.
 $sql = "SELECT c.*, u.prenom, u.nom, u.email, a.nom_boutique
           FROM commande c
           JOIN utilisateur u ON u.id = c.utilisateur_id
@@ -80,6 +84,7 @@ $rows = $st->fetchAll();
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Commandes</div>
 
+<?php // Branche detail : fiche complete de la commande selectionnee. ?>
 <?php if ($view > 0 && isset($cmd) && $cmd): ?>
   <h1>Commande #<?= (int)$cmd['id'] ?></h1>
   <p><a class="btn-ghost btn-small" href="commandes.php">&lsaquo; Retour</a></p>
@@ -95,6 +100,7 @@ $rows = $st->fetchAll();
       <p><strong>Message :</strong><br><?= nl2br(h($cmd['message_personnalisation'])) ?></p>
     <?php endif; ?>
   </div>
+  <?php // Tableau des lignes : detail produit, quantite, prix unitaire et total calcule. ?>
   <?php if (!empty($lignes)): ?>
     <h3>Lignes de commande</h3>
     <table class="adm">
@@ -103,12 +109,14 @@ $rows = $st->fetchAll();
       <?php foreach ($lignes as $l): ?>
         <tr>
           <td><?= h($l['produit_nom']) ?>
+            <?php // Affichage des details de personnalisation seulement si renseignes. ?>
             <?php if ($l['details_personnalisation']): ?>
               <br><span style="font-size:12px;color:var(--muted)"><?= h($l['details_personnalisation']) ?></span>
             <?php endif; ?>
           </td>
           <td><?= (int)$l['quantite'] ?></td>
           <td><?= number_format((float)$l['prix_unitaire'], 2, ',', ' ') ?> €</td>
+          <?php // Total ligne = prix_unitaire * quantite, calcule a la volee cote PHP. ?>
           <td><?= number_format((float)$l['prix_unitaire'] * (int)$l['quantite'], 2, ',', ' ') ?> €</td>
         </tr>
       <?php endforeach; ?>
@@ -148,6 +156,7 @@ $rows = $st->fetchAll();
         <td><?= h($c['nom_boutique']) ?></td>
         <td><?= number_format((float)$c['montant_total'], 2, ',', ' ') ?> €</td>
         <td>
+          <?php // Select avec auto-submit : changer le statut envoie immediatement le form. ?>
           <form method="post" style="margin:0">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="set_statut">
@@ -160,6 +169,7 @@ $rows = $st->fetchAll();
           </form>
         </td>
         <td class="actions">
+          <?php // Lien vers la fiche detail de cette commande (mode view). ?>
           <a class="btn-ghost btn-small" href="commandes.php?view=<?= (int)$c['id'] ?>">Détails</a>
           <form method="post" onsubmit="return confirm('Supprimer cette commande ?')">
             <?= csrf_field() ?>

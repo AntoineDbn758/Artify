@@ -18,9 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare("UPDATE evenement SET est_publie = 1 - est_publie WHERE id = ?")->execute([$id]);
         flash_set('success', 'Publication basculée.');
     } elseif ($action === 'delete') {
+        // DELETE direct ; les inscriptions liees s'effacent via ON DELETE CASCADE en BDD.
         $pdo->prepare("DELETE FROM evenement WHERE id = ?")->execute([$id]);
         flash_set('success', 'Événement supprimé.');
     }
+    // Si on etait en mode fiche detail, on revient sur la meme fiche apres POST.
     redirect('evenements.php' . (isset($_GET['view']) ? '?view=' . (int)$_GET['view'] : ''));
 }
 
@@ -28,12 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // inscrits pour afficher la fiche au lieu du listing.
 $view = (int)($_GET['view'] ?? 0);
 if ($view > 0) {
+    // JOIN artisan pour afficher le nom de la boutique organisatrice dans l'en-tete.
     $evt = $pdo->prepare(
       "SELECT e.*, a.nom_boutique FROM evenement e JOIN artisan a ON a.id = e.artisan_id WHERE e.id = ?"
     );
     $evt->execute([$view]);
     $evt = $evt->fetch();
     if ($evt) {
+        // Liste des inscrits avec leurs infos perso (prenom, nom, email).
         $ins = $pdo->prepare(
           "SELECT ie.*, u.prenom, u.nom, u.email FROM inscription_evenement ie
              JOIN utilisateur u ON u.id = ie.utilisateur_id
@@ -46,6 +50,7 @@ if ($view > 0) {
 
 // On ne compte que les inscriptions "confirmee" pour eviter de gonfler le
 // chiffre avec les annulations ou les en-attente.
+// Sous-requete COUNT pour ramener le nombre d'inscrits confirmes en une seule passe.
 $rows = $pdo->query(
   "SELECT e.*, a.nom_boutique,
           (SELECT COUNT(*) FROM inscription_evenement ie WHERE ie.evenement_id = e.id AND ie.statut='confirmee') AS nb_inscrits
@@ -55,6 +60,7 @@ $rows = $pdo->query(
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Événements</div>
 
+<?php // Mode fiche : on affiche la liste des inscrits a l'evenement selectionne. ?>
 <?php if ($view > 0 && isset($evt) && $evt): ?>
   <h1>Inscrits - <?= h($evt['titre']) ?></h1>
   <p class="meta"><?= h($evt['nom_boutique']) ?> · <?= h(date('d/m/Y H:i', strtotime($evt['date_debut']))) ?> · <?= h($evt['ville'] ?: '') ?></p>
@@ -65,6 +71,7 @@ $rows = $pdo->query(
     <table class="adm">
       <thead><tr><th>#</th><th>Nom</th><th>Email</th><th>Date inscription</th><th>Statut</th></tr></thead>
       <tbody>
+      <?php // Statut peut etre confirmee / en_attente / annulee selon le cycle d'inscription. ?>
       <?php foreach ($ins as $i): ?>
         <tr>
           <td><?= (int)$i['id'] ?></td>
@@ -96,10 +103,12 @@ $rows = $pdo->query(
         <td><?= h(date('d/m/Y H:i', strtotime($e['date_debut']))) ?></td>
         <td><?= h($e['ville'] ?: '-') ?></td>
         <td><?= number_format((float)$e['prix_entree'], 2, ',', ' ') ?> €</td>
+        <?php // Capacite NULL = illimitee, symbolisee par l'infini. ?>
         <td><?= $e['capacite_max'] !== null ? (int)$e['capacite_max'] : '∞' ?></td>
         <td><?= (int)$e['nb_inscrits'] ?></td>
         <td><?= $e['est_publie'] ? '<span class="badge ok">oui</span>' : '<span class="badge muted">non</span>' ?></td>
         <td class="actions">
+          <?php // Lien vers la fiche detail / liste des inscrits. ?>
           <a class="btn-ghost btn-small" href="evenements.php?view=<?= (int)$e['id'] ?>">Inscrits</a>
           <form method="post">
             <?= csrf_field() ?>
