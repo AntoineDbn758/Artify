@@ -11,7 +11,9 @@ $id = (int)($_GET['id'] ?? 0);
 
 // Inscription POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'inscrire') {
+    // Verification CSRF avant tout effet de bord, evite l'inscription forcee via lien externe.
     csrf_check();
+    // require_login interrompt avec redirection si visiteur anonyme.
     require_login();
     $eid = (int)($_POST['evenement_id'] ?? 0);
     // On laisse l'UNIQUE (evenement_id, utilisateur_id) de la table faire le travail anti-doublon, plutot que de check avant insert.
@@ -21,11 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'inscr
             ->execute([$eid, current_user_id()]);
         flash_set('success', 'Inscription confirmée à cet événement !');
     } catch (PDOException $e) {
+        // Violation d'UNIQUE = deja inscrit, message non bloquant.
         flash_set('info', 'Vous êtes déjà inscrit à cet événement.');
     }
+    // Redirect Post/Redirect/Get pour eviter une double soumission au refresh.
     redirect('evenement.php?id=' . $eid);
 }
 
+// Recuperation evenement + artisan organisateur en un seul JOIN.
 $st = $pdo->prepare(
   "SELECT e.*, a.nom_boutique, a.id AS aid
      FROM evenement e JOIN artisan a ON a.id = e.artisan_id
@@ -65,12 +70,14 @@ include __DIR__ . '/includes/header.php';
     <h1><?= h($e['titre']) ?></h1>
     <p class="meta">Organisé par <a href="artisan.php?id=<?= (int)$e['aid'] ?>"><?= h($e['nom_boutique']) ?></a></p>
     <dl>
+      <?php // Si date_fin renseignee, on affiche la fourchette "debut -> fin". ?>
       <dt>Date</dt><dd><?= h(date('d/m/Y H:i', strtotime($e['date_debut']))) ?>
         <?= $e['date_fin'] ? ' &rarr; ' . h(date('d/m/Y H:i', strtotime($e['date_fin']))) : '' ?></dd>
       <?php if (!empty($e['lieu'])): ?>
         <dt>Lieu</dt><dd><?= h($e['lieu']) ?><?= $e['ville'] ? ' (' . h($e['ville']) . ')' : '' ?></dd>
       <?php endif; ?>
       <dt>Prix</dt><dd><?= $e['prix_entree'] > 0 ? number_format((float)$e['prix_entree'], 2, ',', ' ') . ' €' : 'Gratuit' ?></dd>
+      <?php // Capacite max optionnelle : si fixee on affiche jauge, sinon simple compteur. ?>
       <?php if ($e['capacite_max']): ?>
         <dt>Places</dt><dd><?= $nb_inscrits ?> / <?= (int)$e['capacite_max'] ?></dd>
       <?php else: ?>
@@ -82,12 +89,14 @@ include __DIR__ . '/includes/header.php';
     </dl>
 
     <div style="margin-top:18px">
+      <?php // Trois etats : anonyme -> CTA login, deja inscrit -> message, sinon -> bouton inscription. ?>
       <?php if (!is_logged()): ?>
         <a class="btn-primary" href="login_form.php?next=<?= urlencode('evenement.php?id=' . $id) ?>">Se connecter pour s'inscrire</a>
       <?php elseif ($deja_inscrit): ?>
         <div class="flash flash-info">Vous êtes inscrit à cet événement.</div>
       <?php else: ?>
         <form method="post" action="evenement.php?id=<?= (int)$id ?>">
+          <?php // Token CSRF + action=inscrire matches le check en haut de fichier. ?>
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="inscrire">
           <input type="hidden" name="evenement_id" value="<?= (int)$id ?>">

@@ -7,18 +7,22 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Acces reserve aux artisans.
 require_role('artisan');
 $page_title = 'Modifier un produit - Artify';
 $artisan = current_artisan($pdo);
 if (!$artisan) { flash_set('error', 'Aucune boutique.'); redirect('profile.php'); }
 
 // Check d'ownership : on filtre par artisan_id de la session pour qu'un artisan ne puisse pas editer le produit d'un autre via l'URL (anti-IDOR).
+// L'id peut venir du GET (premier affichage) ou du POST (soumission du form), d'ou la double lecture.
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
 $st = $pdo->prepare("SELECT * FROM produit WHERE id = ? AND artisan_id = ?");
 $st->execute([$id, (int)$artisan['id']]);
 $p = $st->fetch();
+// Si pas de match : 404 dur, on ne distingue pas "n'existe pas" de "appartient a un autre" pour ne pas leak d'info.
 if (!$p) { http_response_code(404); die('Produit introuvable ou non autorisé.'); }
 
+// Categories pour le select, tri alpha.
 $cats = $pdo->query("SELECT id, nom FROM categorie ORDER BY nom")->fetchAll();
 $errors = [];
 
@@ -26,8 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $nom  = trim($_POST['nom'] ?? '');
     $prix = $_POST['prix'] ?? '';
+    // Cast en int sur categorie pour eviter une string dans le WHERE.
     $cat  = (int)($_POST['categorie_id'] ?? 0);
     if (!$nom) $errors[] = "Nom requis.";
+    // Prix strictement positif, sinon refus (un produit a 0 EUR n'a pas de sens commercial).
     if (!is_numeric($prix) || (float)$prix <= 0) $errors[] = "Prix invalide.";
     if (!$cat) $errors[] = "Catégorie requise.";
 
@@ -53,8 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image_url = trim($_POST['image_url'] ?? '');
         $uploaded  = '';
         if (!empty($_FILES['photo']['name']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            // Whitelist MIME, on detecte le type reel via mime_content_type, plus fiable que l'extension.
             $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
             $mime = mime_content_type($_FILES['photo']['tmp_name']);
+            // Plafond 5 Mo pour eviter saturation disque.
             if (isset($allowed[$mime]) && $_FILES['photo']['size'] <= 5 * 1024 * 1024) {
                 $ext = $allowed[$mime];
                 $dir = __DIR__ . '/uploads/produits';
@@ -66,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         // On bascule d'abord les images existantes en non-principales, puis on ajoute la nouvelle : evite d'avoir deux principales en base.
+        // Strategie additive : les anciennes images restent (galerie), seul le flag principal bascule.
         $final_url = $uploaded ?: $image_url;
         if ($final_url) {
             $pdo->prepare("UPDATE image_produit SET est_principale=0 WHERE produit_id=?")->execute([$id]);
@@ -74,8 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         flash_set('success', 'Produit mis à jour.');
+        // PRG vers la boutique pour eviter une re-soumission.
         redirect('boutique.php');
     }
+    // En cas d'erreur de validation, on garde la saisie POST pour ne pas perdre le travail de l'utilisateur.
     $p = array_merge($p, $_POST); // pour réafficher
 }
 include __DIR__ . '/includes/header.php';
@@ -84,8 +95,10 @@ include __DIR__ . '/includes/header.php';
 <div class="form-card">
   <h1>Modifier le produit</h1>
   <?php foreach ($errors as $e): ?><div class="flash flash-error"><?= h($e) ?></div><?php endforeach; ?>
+  <?php // multipart obligatoire pour le champ file. ?>
   <form method="post" action="produit_edit.php" enctype="multipart/form-data">
     <?= csrf_field() ?>
+    <?php // id en hidden pour le retrouver cote POST, re-verifie par ownership avant tout UPDATE. ?>
     <input type="hidden" name="id" value="<?= (int)$id ?>">
     <div class="form-row"><label>Nom *</label><input type="text" name="nom" required value="<?= h($p['nom']) ?>"></div>
     <div class="form-row"><label>Nouvelle photo (URL externe)</label>

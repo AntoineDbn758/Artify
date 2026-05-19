@@ -18,17 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // retrouver a qui recalculer la moyenne.
         $r = $pdo->prepare("SELECT artisan_id FROM avis WHERE id = ?");
         $r->execute([$id]); $aid = (int)$r->fetchColumn();
+        // Suppression definitive de l'avis litigieux.
         $pdo->prepare("DELETE FROM avis WHERE id = ?")->execute([$id]);
         if ($aid > 0) {
             // Les colonnes note_moyenne et nb_avis sont denormalisees sur
             // artisan : on les rafraichit a la main pour rester coherent.
+            // AVG + COUNT en une seule requete pour limiter les allers-retours BDD.
             $st = $pdo->prepare("SELECT AVG(note) AS m, COUNT(*) AS n FROM avis WHERE artisan_id = ?");
             $st->execute([$aid]); $agg = $st->fetch();
+            // round(2) : 2 decimales pour rester coherent avec l'affichage public.
             $pdo->prepare("UPDATE artisan SET note_moyenne = ?, nb_avis = ? WHERE id = ?")
                 ->execute([round((float)($agg['m'] ?? 0), 2), (int)($agg['n'] ?? 0), $aid]);
         }
         flash_set('success', 'Avis supprimé.');
     }
+    // Conserve les filtres GET courants apres le POST.
     redirect('avis.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
@@ -39,6 +43,7 @@ $artid = (int)($_GET['artisan_id'] ?? 0);
 $where = []; $params = [];
 if ($min > 0) { $where[] = "a.note <= ?"; $params[] = $min; }
 if ($artid > 0) { $where[] = "a.artisan_id = ?"; $params[] = $artid; }
+// Double JOIN : utilisateur (auteur de l'avis) + artisan (cible de l'avis).
 $sql = "SELECT a.*, u.prenom, u.nom, u.email, ar.nom_boutique
           FROM avis a
           JOIN utilisateur u ON u.id = a.utilisateur_id
@@ -48,6 +53,7 @@ $sql .= " ORDER BY a.created_at DESC";
 $st = $pdo->prepare($sql); $st->execute($params);
 $rows = $st->fetchAll();
 
+// Liste alimentant le select "filtre par artisan" du formulaire.
 $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_boutique")->fetchAll();
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Avis</div>
@@ -86,15 +92,19 @@ $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_bouti
     <tr>
       <td><?= (int)$a['id'] ?></td>
       <td><?= h(date('d/m/Y', strtotime($a['created_at']))) ?></td>
+      <?php // Auteur de l'avis : nom puis email en sous-ligne grise. ?>
       <td><?= h(trim(($a['prenom'] ?? '') . ' ' . ($a['nom'] ?? ''))) ?><br>
           <span style="font-size:12px;color:var(--muted)"><?= h($a['email']) ?></span></td>
       <td><?= h($a['nom_boutique']) ?></td>
       <td>
+        <?php // Couleur du badge selon la note : rouge <=2, jaune =3, vert sinon. ?>
         <?php $cls = (int)$a['note'] <= 2 ? 'err' : ((int)$a['note'] === 3 ? 'warn' : 'ok'); ?>
         <span class="badge <?= $cls ?>"><?= str_repeat('', (int)$a['note']) . str_repeat('', 5 - (int)$a['note']) ?></span>
       </td>
+      <?php // Commentaire tronque a 240 char pour le tableau, lecture complete via la fiche publique. ?>
       <td style="max-width:380px"><?= nl2br(h(mb_substr($a['commentaire'] ?? '', 0, 240))) ?><?= mb_strlen($a['commentaire'] ?? '')>240?'…':'' ?></td>
       <td class="actions">
+        <?php // Bouton supprimer : declenche le recalcul note_moyenne / nb_avis cote serveur. ?>
         <form method="post" onsubmit="return confirm('Supprimer cet avis ?')">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="delete">

@@ -7,15 +7,18 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Cast en int : assure que l'id passe en URL est numerique avant la requete prepared.
 $id = (int)($_GET['id'] ?? 0);
 
 // On recupere artisan + utilisateur en une seule requete pour eviter un round-trip BDD supplementaire.
+// Filtre u.est_actif = 1 : un compte suspendu rend la fiche artisan invisible.
 $st = $pdo->prepare(
   "SELECT a.*, u.prenom, u.nom, u.ville, u.bio, u.avatar_url
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
     WHERE a.id = ? AND u.est_actif = 1");
 $st->execute([$id]);
 $artisan = $st->fetch();
+// Aucun match : on emet un vrai 404 plutot qu'une page vide pour le SEO et le retour utilisateur.
 if (!$artisan) {
     http_response_code(404);
     $page_title = 'Artisan introuvable';
@@ -27,6 +30,7 @@ if (!$artisan) {
 $page_title = $artisan['nom_boutique'] . ' - Artify';
 
 // Liste des produits publies de cet artisan, du plus recent au plus ancien.
+// Filtre est_publie = 1 pour ne jamais leak un brouillon, meme via la fiche artisan.
 $prods = $pdo->prepare(
   "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie,
           ip.url AS image_url
@@ -44,12 +48,14 @@ include __DIR__ . '/includes/header.php';
 
 <div class="detail">
   <?php
+    // Mapping local en plus grand format (800x600) pour le visuel principal de la fiche.
     $ATELIER_BIG = [
       'Bijouterie'   => 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=800&h=600&fit=crop&q=80',
       'Céramique'    => 'https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=800&h=600&fit=crop&q=80',
       'Textile'      => 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&h=600&fit=crop&q=80',
       'Ébénisterie'  => 'https://images.unsplash.com/photo-1601058268499-e52658b8bb88?w=800&h=600&fit=crop&q=80',
     ];
+    // Fallback generique pour les specialites non listees ci-dessus.
     $atelier_big = $ATELIER_BIG[$artisan['specialite']]
         ?? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=600&fit=crop&q=80';
   ?>
@@ -62,17 +68,20 @@ include __DIR__ . '/includes/header.php';
     <?php if (!empty($artisan['specialite'])): ?>
       <span class="tag"><?= h($artisan['specialite']) ?></span>
     <?php endif; ?>
+    <?php // Badge "Verifie" reserve aux artisans dont l'identite a ete validee par l'equipe Artify. ?>
     <?php if ($artisan['verifie']): ?>
       <span class="tag" style="background:#e6f4eb;color:#1e5a35">Vérifié</span>
     <?php endif; ?>
     <dl>
       <dt>Description</dt><dd><?= h($artisan['description'] ?: '-') ?></dd>
+      <?php // Lien externe : target _blank + rel noopener pour eviter window.opener exploitable. ?>
       <?php if (!empty($artisan['site_web'])): ?>
         <dt>Site web</dt><dd><a href="<?= h($artisan['site_web']) ?>" rel="noopener" target="_blank"><?= h($artisan['site_web']) ?></a></dd>
       <?php endif; ?>
       <?php if (!empty($artisan['instagram'])): ?>
         <dt>Instagram</dt><dd><?= h($artisan['instagram']) ?></dd>
       <?php endif; ?>
+      <?php // Note absente tant qu'aucun avis n'est enregistre, evite "0.0/5" trompeur. ?>
       <?php if ((float)$artisan['note_moyenne'] > 0): ?>
         <dt>Note</dt><dd><?= number_format((float)$artisan['note_moyenne'], 1) ?> / 5 (<?= (int)$artisan['nb_avis'] ?> avis)</dd>
       <?php endif; ?>

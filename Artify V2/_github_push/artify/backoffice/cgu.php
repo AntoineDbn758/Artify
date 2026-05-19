@@ -15,21 +15,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['action'] ?? '') === 'create') {
         $contenu = trim($_POST['contenu'] ?? '');
         $version = trim($_POST['version'] ?? '1.0');
+        // Date par defaut = aujourd'hui si l'admin laisse le champ vide.
         $date = $_POST['date_effet'] ?: date('Y-m-d');
         if ($contenu) {
             // On desactive tout avant d'inserer la nouvelle version : invariant
             // metier "une seule CGU active a la fois".
             $pdo->exec("UPDATE cgu SET est_actif = 0");
+            // Insert avec est_actif=1 : c'est elle qui devient la nouvelle CGU en vigueur.
             $pdo->prepare("INSERT INTO cgu (contenu, version, date_effet, est_actif) VALUES (?,?,?,1)")
                 ->execute([$contenu, $version, $date]);
             flash_set('success', 'Nouvelle version des CGU publiée.');
         } else flash_set('error', 'Contenu vide.');
     } elseif (($_POST['action'] ?? '') === 'toggle') {
         $id = (int)($_POST['id'] ?? 0);
+        // Reactiver une vieille version : permet de revenir en arriere si besoin.
         $pdo->prepare("UPDATE cgu SET est_actif = 1 - est_actif WHERE id = ?")->execute([$id]);
         flash_set('success', 'Statut basculé.');
     } elseif (($_POST['action'] ?? '') === 'delete') {
         $id = (int)($_POST['id'] ?? 0);
+        // Suppression definitive d'une version d'historique (pas de FK descendante).
         $pdo->prepare("DELETE FROM cgu WHERE id = ?")->execute([$id]);
         flash_set('success', 'Version supprimée.');
     }
@@ -40,12 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // repere la version active a afficher en tete de page.
 $all = $pdo->query("SELECT * FROM cgu ORDER BY date_effet DESC, id DESC")->fetchAll();
 $current = null;
+// Premiere ligne active rencontree = version en vigueur (invariant : une seule).
 foreach ($all as $c) if ($c['est_actif']) { $current = $c; break; }
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; CGU</div>
 <h1>Gestion des CGU</h1>
 <p>Publier une nouvelle version désactive automatiquement les versions précédentes.</p>
 
+<?php // Encart en haut : recapitulatif de la version active avec apercu tronque a 500 char. ?>
 <?php if ($current): ?>
   <div class="admin-card">
     <h3>Version en vigueur : <?= h($current['version']) ?>
@@ -80,11 +86,13 @@ foreach ($all as $c) if ($c['est_actif']) { $current = $c; break; }
 <table class="adm">
   <thead><tr><th>Version</th><th>Date d'effet</th><th>Statut</th><th>Aperçu</th><th class="actions">Actions</th></tr></thead>
   <tbody>
+  <?php // Tableau historique : chaque ligne donne acces a toggle ou delete. ?>
   <?php foreach ($all as $c): ?>
     <tr>
       <td><strong><?= h($c['version']) ?></strong></td>
       <td><?= h(date('d/m/Y', strtotime($c['date_effet']))) ?></td>
       <td><?= $c['est_actif'] ? '<span class="badge ok">active</span>' : '<span class="badge muted">archivée</span>' ?></td>
+      <?php // Apercu 100 char pour repere rapide sans tout reafficher. ?>
       <td><?= h(mb_substr($c['contenu'], 0, 100)) ?>…</td>
       <td class="actions">
         <form method="post">

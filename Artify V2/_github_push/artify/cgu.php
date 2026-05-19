@@ -9,6 +9,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'CGU - Artify';
 // On prend la version active la plus recente, ce qui permet de preparer une future version en base sans la publier.
+// LIMIT 1 + ORDER BY date_effet DESC : si plusieurs versions actives, la plus recente l'emporte.
 $cgu = $pdo->query("SELECT contenu, version, date_effet FROM cgu WHERE est_actif = 1 ORDER BY date_effet DESC LIMIT 1")->fetch();
 include __DIR__ . '/includes/header.php';
 ?>
@@ -40,7 +41,9 @@ include __DIR__ . '/includes/header.php';
   </div>
 <?php else: ?>
   <div class="card">
+    <?php // Affichage de la version + date d'entree en vigueur pour traçabilite legale. ?>
     <p class="meta">Version <?= h($cgu['version']) ?> - en vigueur depuis le <?= h(date('d/m/Y', strtotime($cgu['date_effet']))) ?></p>
+    <?php // h() echappe le HTML puis nl2br convertit les sauts de ligne, jamais d'execution de balises stockees en base. ?>
     <?= nl2br(h($cgu['contenu'])) ?>
   </div>
 <?php endif; ?>

@@ -10,6 +10,7 @@ require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Garde CSRF avant toute mutation.
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
@@ -20,15 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash_set('success', 'Publication basculée.');
     } elseif ($action === 'delete') {
         try {
+            // DELETE direct ; si une ligne_commande pointe encore dessus la FK rejette.
             $pdo->prepare("DELETE FROM produit WHERE id = ?")->execute([$id]);
             flash_set('success', 'Produit supprimé.');
         } catch (\Throwable $e) {
             flash_set('error', 'Suppression impossible (commandes liées).');
         }
     }
+    // Conserve les filtres GET dans la redirection PRG pour ne pas perdre la vue courante.
     redirect('produits.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
+// Lecture des 4 filtres possibles : recherche, categorie, artisan, etat de publication.
 $q   = trim($_GET['q'] ?? '');
 $cat = (int)($_GET['cat'] ?? 0);
 $artid = (int)($_GET['artisan_id'] ?? 0);
@@ -44,6 +48,7 @@ if ($pub === '1' || $pub === '0') { $where[] = "p.est_publie = ?"; $params[] = (
 
 // Sous-requete pour piocher la miniature : image marquee principale en
 // priorite, sinon la premiere selon l'ordre defini par l'artisan.
+// JOIN sur categorie et artisan pour resoudre le libelle dans la meme requete.
 $sql = "SELECT p.*, c.nom AS cat_nom, a.nom_boutique,
               (SELECT url FROM image_produit ip WHERE ip.produit_id = p.id ORDER BY est_principale DESC, ordre ASC LIMIT 1) AS thumb
          FROM produit p
@@ -54,6 +59,7 @@ $sql .= " ORDER BY p.created_at DESC";
 $st = $pdo->prepare($sql); $st->execute($params);
 $rows = $st->fetchAll();
 
+// Donnees pour alimenter les selects du formulaire de filtre.
 $cats = $pdo->query("SELECT id, nom FROM categorie ORDER BY nom")->fetchAll();
 $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_boutique")->fetchAll();
 ?>
@@ -102,12 +108,14 @@ $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_bouti
   <tbody>
   <?php foreach ($rows as $p): ?>
     <tr>
+      <?php // Miniature ou placeholder selon presence d'une image principale. ?>
       <td><?php if ($p['thumb']): ?>
         <img class="thumb-sm" src="<?= h($p['thumb']) ?>" alt="">
       <?php else: ?>
         <div class="thumb-sm" style="display:flex;align-items:center;justify-content:center;color:var(--ocre);font-size:11px">-</div>
       <?php endif; ?></td>
       <td><?= (int)$p['id'] ?></td>
+      <?php // Lien target=_blank vers la fiche publique pour preview rapide sans perdre le listing. ?>
       <td><a href="../produit.php?id=<?= (int)$p['id'] ?>" target="_blank"><?= h($p['nom']) ?></a></td>
       <td><?= h($p['nom_boutique']) ?></td>
       <td><span class="badge"><?= h($p['cat_nom']) ?></span></td>
@@ -115,6 +123,7 @@ $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_bouti
       <td><?= (int)$p['stock'] ?></td>
       <td><?= $p['est_publie'] ? '<span class="badge ok">oui</span>' : '<span class="badge muted">non</span>' ?></td>
       <td class="actions">
+        <?php // Toggle publie : couleur warn quand le produit est en ligne, success sinon. ?>
         <form method="post">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="toggle_publie">

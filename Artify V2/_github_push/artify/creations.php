@@ -7,13 +7,17 @@
  * francais.
  */
 
+// bootstrap charge la session, PDO et helpers globaux avant toute logique metier.
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Créations - Artify';
 
 // Cast en int pour neutraliser toute injection sur le filtre categorie passe via l'URL.
+// Zero = pas de filtre, on retombe sur le catalogue complet.
 $cat = (int)($_GET['cat'] ?? 0);
+// Liste des categories utilisee pour generer les boutons de filtre.
 $cats = $pdo->query("SELECT id, nom FROM categorie ORDER BY nom")->fetchAll();
 
+// LEFT JOIN sur image_produit, image principale optionnelle (NULL si non encore renseignee).
 $sql = "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie, a.nom_boutique, a.id AS aid,
                ip.url AS image_url
           FROM produit p
@@ -23,7 +27,9 @@ $sql = "SELECT p.id, p.nom, p.prix, p.materiaux, c.nom AS categorie, a.nom_bouti
          WHERE p.est_publie = 1 ";
 // Construction dynamique de la clause WHERE : la categorie n'est ajoutee que si on a un filtre actif.
 $params = [];
+// Placeholder ? bind ensuite par execute, evite la concatenation directe d'une valeur GET.
 if ($cat > 0) { $sql .= " AND p.categorie_id = ? "; $params[] = $cat; }
+// LIMIT 60 : garde-fou volumetrique tant qu'on n'a pas de pagination.
 $sql .= " ORDER BY p.created_at DESC LIMIT 60";
 $st = $pdo->prepare($sql);
 $st->execute($params);
@@ -36,8 +42,10 @@ include __DIR__ . '/includes/header.php';
 <p>Toutes les œuvres et objets proposés par nos artisans.</p>
 
 <div style="margin:18px 0;display:flex;gap:8px;flex-wrap:wrap">
+  <?php // Bouton "Toutes" actif lorsque aucun filtre n'est applique (cat==0). ?>
   <a class="btn-ghost btn-small <?= $cat === 0 ? 'btn-primary' : '' ?>" href="creations.php">Toutes</a>
   <?php foreach ($cats as $c): ?>
+    <?php // Classe btn-primary appliquee a la categorie courante pour feedback visuel du filtre. ?>
     <a class="btn-ghost btn-small <?= $cat === (int)$c['id'] ? 'btn-primary' : '' ?>"
        href="creations.php?cat=<?= (int)$c['id'] ?>"><?= h($c['nom']) ?></a>
   <?php endforeach; ?>
@@ -49,12 +57,15 @@ include __DIR__ . '/includes/header.php';
   <div class="grid grid-3">
     <?php foreach ($produits as $p): ?>
       <a class="card" href="produit.php?id=<?= (int)$p['id'] ?>" style="color:inherit">
+        <?php // Fallback Unsplash si pas d'image principale enregistree pour ce produit. ?>
         <img class="thumb" src="<?= h($p['image_url'] ?: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80') ?>" alt="<?= h($p['nom']) ?>" loading="lazy">
         <h3><?= h($p['nom']) ?></h3>
         <div class="meta"><?= h($p['nom_boutique']) ?> · <?= h($p['categorie']) ?></div>
         <?php if (!empty($p['materiaux'])): ?>
+          <?php // Materiaux tronques a 80 caracteres pour ne pas casser la grille. ?>
           <div class="meta"><?= h(mb_substr($p['materiaux'], 0, 80)) ?></div>
         <?php endif; ?>
+        <?php // Format FR avec virgule decimale et espace milliers. ?>
         <div class="price"><?= number_format((float)$p['prix'], 2, ',', ' ') ?> &euro;</div>
       </a>
     <?php endforeach; ?>

@@ -13,8 +13,10 @@
 
 declare(strict_types=1);
 
+// Retour direct d'un grand tableau associatif, consomme par require dans _seed_demo.php.
 return [
     // - Bios par email (utilisateur) -
+    // Index par email plutot que par id : les ids ne sont pas encore connus a ce stade du seed.
     'bios' => [
         'admin@artify.fr'  => 'Compte administrateur Artify.',
         'sophie@artify.fr' => 'Bijoutière passionnée installée à Paris depuis 2015. Travail de l\'or et des pierres fines.',
@@ -28,6 +30,7 @@ return [
     ],
 
     // - Utilisateurs : [nom, prenom, email, role, ville, telephone] -
+    // Le role determine le mot de passe applique cote seeder (admin/artisan/visiteur).
     'users' => [
         ['Admin',      'Système', 'admin@artify.fr',  'admin',    'Paris',     '+33 1 23 45 67 89'],
         ['Martin',     'Sophie',  'sophie@artify.fr', 'artisan',  'Paris',     '+33 6 12 34 56 78'],
@@ -41,6 +44,7 @@ return [
     ],
 
     // - Artisans : email_user => [nom_boutique, specialite, description, site, ig, note, nb_avis] -
+    // Note/nb_avis sont seedes en dur, l'agregat reel se calcule normalement depuis la table avis.
     'artisans' => [
         'sophie@artify.fr' => ['Atelier Sophie M.',  'Bijouterie',   'Créations en or et argent faites main depuis 2015. Pièces uniques, pierres choisies une à une.', 'https://atelier-sophie.example',    'atelier_sophie_m', 4.80, 47],
         'lucas@artify.fr'  => ['Lucas Céramiques',   'Céramique',    'Pièces uniques en grès et porcelaine, cuisson au gaz à 1280°C. Influences japonaises.',              'https://lucas-ceramiques.example',  'lucas_ceramiques', 4.65, 32],
@@ -49,6 +53,7 @@ return [
     ],
 
     // - Produits : [artisan_email, cat_id, nom, desc, prix, materiaux, dim, delai, stock, perso, seed_image] -
+    // cat_id pointe sur l'id de categorie ouvert dans la base, le seed table sur l'ordre alpha cree au schema initial.
     'produits' => [
         ['sophie@artify.fr', 1, 'Bague dorée à l\'or fin',
             'Bague unique en or 18 carats serti d\'un saphir bleu de Ceylan. Poli main et finitions soignées. Fabrication à la cire perdue dans notre atelier parisien. Livraison en écrin offert.',
@@ -98,6 +103,7 @@ return [
     ],
 
     // - Événements : [artisan_email, titre, desc, lieu, ville, days_offset, dur_h, prix, cap, seed] -
+    // days_offset relatif a "today" : un evenement a +14 jours reste toujours dans le futur, peu importe quand le seed est joue.
     'events' => [
         ['sophie@artify.fr', 'Marché des créateurs - Place des Vosges',
             'Exposition-vente de bijoux contemporains. Rencontrez 30 artisans européens autour d\'un café offert.',
@@ -126,6 +132,7 @@ return [
     ],
 
     // - Galerie : [artisan_email, produit_nom_or_null, seed_image, titre, desc] -
+    // produit_nom = null pour les photos d'ambiance non rattachees a un produit (atelier, four, etc.).
     'galerie' => [
         ['sophie@artify.fr', 'Bague dorée à l\'or fin',         'gallery-bague-1',       'Bague saphir - vue de profil', 'Détail du sertissage sur la bague saphir.'],
         ['sophie@artify.fr', 'Collier perles d\'eau douce',     'gallery-collier-1',     'Sautoir en porté',             'Le sautoir en situation, sur une tenue d\'été.'],
@@ -143,6 +150,7 @@ return [
     ],
 
     // - FAQ : [question, reponse, ordre] -
+    // Champ ordre pour l'affichage trie : 10, 11, 12... laisse de la place pour intercaler de nouvelles questions.
     'faqs' => [
         ['Comment créer un compte ?',                       'Cliquez sur « S\'inscrire » en haut à droite, choisissez votre profil (visiteur ou artisan), remplissez le formulaire. Un email de confirmation peut être demandé selon le mode de déploiement.', 10],
         ['Quels sont les moyens de paiement ?',             'Nous acceptons les cartes Visa, Mastercard et American Express. Le paiement est sécurisé par notre prestataire certifié PCI-DSS. Aucune donnée bancaire n\'est stockée sur nos serveurs.', 11],
@@ -157,6 +165,7 @@ return [
     ],
 
     // - Commandes : [user_email, artisan_email, statut, adresse, cp, ville, msg, qte] -
+    // Variete de statuts couvrant tout le cycle de vie : en_attente, confirmee, en_fabrication, expediee, livree.
     'commandes' => [
         ['marie@artify.fr', 'sophie@artify.fr', 'livree',         '12 rue de Rivoli',  '75001', 'Paris',    null, 1],
         ['paul@artify.fr',  'lucas@artify.fr',  'expediee',       '5 avenue Foch',     '69006', 'Lyon',     'Bien emballer svp', 2],
@@ -166,6 +175,7 @@ return [
     ],
 
     // - Avis : [user_email, artisan_email, note, commentaire] -
+    // Notes panachees 3/4/5 pour rendre la demo realiste, pas que des 5 etoiles.
     'avis' => [
         ['marie@artify.fr', 'sophie@artify.fr', 5, 'Bague magnifique, le travail est irréprochable. Sophie a été d\'excellents conseils. Je recommande !'],
         ['paul@artify.fr',  'lucas@artify.fr',  5, 'Set de tasses parfait, exactement comme sur les photos. Emballage soigné. Merci Lucas.'],
@@ -177,6 +187,7 @@ return [
     ],
 
     // - Contact : [nom, email, sujet, message, traite] -
+    // Champ traite (1/0) seede pour avoir un mix de messages "fait" et "a traiter" dans le backoffice.
     'contacts' => [
         ['Léa Bernard',     'lea.bernard@example.com',  'Demande de devis',          'Bonjour, serait-il possible d\'avoir un devis pour 20 bols personnalisés pour un mariage en juillet ? Merci.', 1],
         ['Hugo Carpentier', 'hugo.c@example.com',       'Problème de connexion',     'Bonjour, je n\'arrive pas à me connecter à mon compte depuis ce matin. Pouvez-vous m\'aider ?', 1],
@@ -186,6 +197,7 @@ return [
     ],
 
     // - Textes longs CGU / mention légale -
+    // Heredoc MD pour conserver les retours a la ligne et la mise en forme markdown sans echappement.
     'cgu' => <<<MD
 # Conditions générales d'utilisation
 

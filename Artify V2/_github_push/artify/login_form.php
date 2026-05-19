@@ -9,7 +9,9 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Connexion - Artify';
 // next= permet de revenir a la page d'origine (ex: fiche produit) une fois logge, valeur reinjectee dans le formulaire en hidden.
+// Code d'erreur GET pour repondre apres redirect de login.php (1 = bad creds, disabled = compte suspendu).
 $err = $_GET['err'] ?? '';
+// Si pas de next fourni, on retourne a l'accueil par defaut.
 $next = $_GET['next'] ?? 'index.php';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -24,9 +26,12 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-error">Ce compte a été désactivé.</div>
   <?php endif; ?>
 
+  <?php // POST traite par login.php : verification du hash + creation de session. ?>
   <form method="post" action="login.php" autocomplete="on">
     <?= csrf_field() ?>
+    <?php // next reinjecte en hidden pour conserver la cible apres login. ?>
     <input type="hidden" name="next" value="<?= h($next) ?>">
+    <?php // autofocus pour saisie immediate du visiteur, type=email pour validation native. ?>
     <div class="form-row">
       <label>Email</label>
       <input type="email" name="email" required autofocus>

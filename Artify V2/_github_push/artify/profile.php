@@ -7,10 +7,12 @@
  */
 
 require_once __DIR__ . '/includes/bootstrap.php';
+// Page reservee aux utilisateurs connectes, redirect vers login si visiteur anonyme.
 require_login();
 $page_title = 'Mon profil - Artify';
 
 // current_artisan renvoie null si l'utilisateur n'a pas le role artisan, ce qui sert ensuite a masquer le menu Ma boutique.
+// Recupere les donnees utilisateur completes (jointure avec table utilisateur).
 $u = current_user($pdo);
 $artisan = current_artisan($pdo);
 include __DIR__ . '/includes/header.php';
@@ -19,9 +21,11 @@ include __DIR__ . '/includes/header.php';
 <h1>Bonjour, <?= h($u['prenom']) ?> !</h1>
 
 <div class="detail">
+  <?php // Si l'utilisateur a charge un avatar, on l'affiche, sinon fallback initiales pour evitez les image cassees. ?>
   <?php if (!empty($u['avatar_url'])): ?>
     <img class="visual" src="<?= h($u['avatar_url']) ?>" alt="<?= h($u['prenom'] . ' ' . $u['nom']) ?>">
   <?php else: ?>
+    <?php // Initiales en grand format Playfair pour rester elegant en l'absence de photo. ?>
     <div class="visual" style="display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:96px;color:var(--ocre)">
       <?= h(mb_substr($u['prenom'], 0, 1) . mb_substr($u['nom'], 0, 1)) ?>
     </div>
@@ -39,6 +43,7 @@ include __DIR__ . '/includes/header.php';
     <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
       <a class="btn-primary" href="profile_edit.php">Modifier mon profil</a>
       <a class="btn-ghost" href="change_password.php">Changer mon mot de passe</a>
+      <?php // Bouton "Ma boutique" affiche uniquement si l'user est artisan. ?>
       <?php if ($artisan): ?>
         <a class="btn-ghost" href="boutique.php">Ma boutique</a>
       <?php endif; ?>
@@ -58,6 +63,7 @@ include __DIR__ . '/includes/header.php';
 
 <?php
 // Inscriptions aux evenements : on garde les 10 dernieres pour un apercu, le detail complet n'est pas necessaire ici.
+// Tri DESC pour mettre l'evenement le plus recent en haut (passe ou futur, peu importe).
 $st = $pdo->prepare(
   "SELECT e.id, e.titre, e.date_debut, ie.statut
      FROM inscription_evenement ie JOIN evenement e ON e.id = ie.evenement_id
