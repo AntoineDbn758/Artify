@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Suppression d'un produit. Demande confirmation. Verifie aussi le ownership
+ * avant de supprimer. Les images liees (image_produit) sont supprimees en
+ * cascade via ON DELETE CASCADE.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect('boutique.php'); }

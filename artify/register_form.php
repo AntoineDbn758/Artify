@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Formulaire d'inscription (le visuel). Le POST est traite par
+ * inscription.php. Propose deux types de comptes : visiteur (par defaut) ou
+ * artisan (cree aussi automatiquement une boutique liee).
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Inscription - Artify';
 $err = $_GET['err'] ?? '';

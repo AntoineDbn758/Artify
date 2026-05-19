@@ -1,3 +1,10 @@
+/*
+  Styles specifiques au backoffice. Reutilise les variables de style.css mais
+  ajoute le layout dashboard (sidebar fixe + contenu droite scrollable), les
+  tables zebra striped, et les boutons d'action colories selon le verbe
+  (success/danger/warn).
+*/
+
 /* backoffice/css/admin.css - dashboard admin Artify (palette ocre) */
 
 /* - Layout - */

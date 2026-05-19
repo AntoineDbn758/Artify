@@ -1,10 +1,18 @@
 <?php
+
+/**
+ * Formulaire de contact. POST : stocke un nouveau message dans la table
+ * contact avec traite=0. L'admin retrouve ces messages dans
+ * backoffice/contacts.php pour les traiter.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Contact - Artify';
 
 $sent = false;
 $errors = [];
 
+// Le formulaire est ouvert aux visiteurs anonymes, donc on s'appuie uniquement sur le token CSRF + validation cote serveur.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $nom     = trim($_POST['nom'] ?? '');
@@ -16,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$sujet)   $errors[] = "Le sujet est requis.";
     if (!$message || mb_strlen($message) < 10) $errors[] = "Le message doit faire au moins 10 caractères.";
 
+    // Insertion avec traite=0 par defaut, l'admin retrouvera le message dans backoffice/contacts.php.
     if (!$errors) {
         $pdo->prepare("INSERT INTO contact (nom, email, sujet, message) VALUES (?, ?, ?, ?)")
             ->execute([$nom, $email, $sujet, $message]);

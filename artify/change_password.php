@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Changement du mot de passe. Demande l'ancien mot de passe pour verification
+ * avant d'accepter le nouveau. Le hash est regenere avec password_hash().
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Changer mon mot de passe - Artify';

@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Edition de l'unique entree de mention_legale. Pas de versionning ici,
+ * contrairement aux CGU.
+ */
+
 $page_title = 'Mentions légales - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */

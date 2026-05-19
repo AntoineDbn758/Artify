@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Vue globale des commandes. Permet de faire passer une commande d'un statut
+ * a l'autre dans le workflow : en_attente -> confirmee -> en_fabrication ->
+ * expediee -> livree (ou annulee a tout moment). Tres utile pour le suivi
+ * cote artisan ou support.
+ */
+
 $page_title = 'Commandes - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */

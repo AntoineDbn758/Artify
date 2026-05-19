@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Creation d'un produit pour l'artisan. Le formulaire accepte une URL d'image
+ * externe OU un upload de fichier (jpg/png/webp, max 5 Mo, stocke dans
+ * uploads/produits/). La photo est ajoutee dans image_produit avec
+ * est_principale=1.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Nouveau produit - Artify';

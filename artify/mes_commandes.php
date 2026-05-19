@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Historique des commandes de l'utilisateur connecte. Triees de la plus
+ * recente a la plus ancienne. Statut affiche en couleur (en attente,
+ * confirmee, en fabrication, expediee, livree, annulee).
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Mes commandes - Artify';

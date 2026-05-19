@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Liste de tous les produits avec filtres par categorie et artisan. Toggle de
+ * publication (est_publie 0/1) sans suppression definitive.
+ */
+
 $page_title = 'Produits - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
@@ -7,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
+    // Soft-hide via est_publie : on prefere depublier qu'effacer pour ne pas
+    // casser les commandes deja passees qui pointent sur ce produit.
     if ($action === 'toggle_publie') {
         $pdo->prepare("UPDATE produit SET est_publie = 1 - est_publie WHERE id = ?")->execute([$id]);
         flash_set('success', 'Publication basculée.');
@@ -26,12 +34,16 @@ $cat = (int)($_GET['cat'] ?? 0);
 $artid = (int)($_GET['artisan_id'] ?? 0);
 $pub = $_GET['pub'] ?? '';
 
+// Filtres cumulables : on n'ajoute la clause que si le filtre est present, et
+// on conserve l'ordre des params pour le bind PDO.
 $where = []; $params = [];
 if ($q !== '')   { $where[] = "p.nom LIKE ?"; $params[] = "%$q%"; }
 if ($cat > 0)    { $where[] = "p.categorie_id = ?"; $params[] = $cat; }
 if ($artid > 0)  { $where[] = "p.artisan_id = ?"; $params[] = $artid; }
 if ($pub === '1' || $pub === '0') { $where[] = "p.est_publie = ?"; $params[] = (int)$pub; }
 
+// Sous-requete pour piocher la miniature : image marquee principale en
+// priorite, sinon la premiere selon l'ordre defini par l'artisan.
 $sql = "SELECT p.*, c.nom AS cat_nom, a.nom_boutique,
               (SELECT url FROM image_produit ip WHERE ip.produit_id = p.id ORDER BY est_principale DESC, ordre ASC LIMIT 1) AS thumb
          FROM produit p

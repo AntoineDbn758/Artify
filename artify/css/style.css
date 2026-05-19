@@ -1,3 +1,10 @@
+/*
+  Feuille de style globale du site public. Definit la palette ocre/cuivre dans
+  :root (variables CSS), la nav sticky, les composants (card, button, badge,
+  form), et les media queries pour le responsive (4 breakpoints : 1100, 900,
+  760, 480px).
+*/
+
 /* css/style.css - Artify, palette ocre / chaleureuse */
 :root{
   --bg:#F5F0E8; --surface:#FDFAF6; --warm:#EAE0D0; --border:#DDD0BC;

@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Moderation des avis clients. Permet de supprimer un avis inapproprie. Quand
+ * un avis est supprime, on recalcule la note moyenne et le nb_avis de
+ * l'artisan associe.
+ */
+
 $page_title = 'Avis - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */

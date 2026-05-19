@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Formulaire d'edition du profil. L'email n'est pas modifiable (c'est la cle
+ * d'identification). On peut changer nom, prenom, ville, telephone, bio, URL
+ * de l'avatar.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Éditer mon profil - Artify';

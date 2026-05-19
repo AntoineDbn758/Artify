@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Formulaire de connexion (visuel). Le POST est traite par login.php. Accepte
+ * un parametre next= pour rediriger l'utilisateur vers la page qu'il voulait
+ * initialement consulter apres la connexion.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Connexion - Artify';
 $err = $_GET['err'] ?? '';

@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Callback de retour Stripe en cas de paiement reussi. On verifie cote
+ * serveur que la session Stripe a bien payment_status=paid (on ne fait jamais
+ * confiance a une simple redirection URL). Si OK : passe la commande en
+ * 'confirmee' et decremente le stock.
+ */
+
 /**
  * commande_success.php - Callback de retour Stripe après paiement réussi.
  * Vérifie la session côté Stripe, met la commande en 'confirmee'.
@@ -13,7 +21,8 @@ $session_id  = trim($_GET['session'] ?? '');
 
 if (!$commande_id || !$session_id) { http_response_code(400); die('Paramètres manquants.'); }
 
-// Vérifie que la commande appartient au user connecté
+// Filtrage par utilisateur_id pour empecher qu'un client
+// puisse consulter la commande d'un autre via l'URL.
 $st = $pdo->prepare(
     "SELECT c.id, c.statut, c.montant_total, c.utilisateur_id, c.message_personnalisation,
             p.nom AS produit, lc.quantite, p.id AS produit_id
@@ -26,7 +35,8 @@ $st->execute([$commande_id, current_user_id()]);
 $c = $st->fetch();
 if (!$c) { http_response_code(404); die('Commande introuvable.'); }
 
-// Récupère la session Stripe et vérifie payment_status
+// Source de verite cote Stripe : on ne se fie pas a l'URL de retour
+// car elle peut etre forgee, on interroge l'API pour le vrai statut.
 $verdict = 'inconnu';
 $amount_paid = null;
 if (stripe_configured() && $session_id) {
@@ -37,12 +47,14 @@ if (stripe_configured() && $session_id) {
     }
 }
 
-// Si le paiement est passé, on confirme la commande + décrémente le stock
+// Garde 'en_attente' pour ne pas confirmer deux fois et redecrementer
+// le stock si l'utilisateur rafraichit la page success.
 if ($verdict === 'paid' && $c['statut'] === 'en_attente') {
     $pdo->beginTransaction();
     try {
         $pdo->prepare("UPDATE commande SET statut='confirmee' WHERE id=?")
             ->execute([$commande_id]);
+        // GREATEST(... , 0) pour ne pas tomber en stock negatif en cas de race.
         $pdo->prepare("UPDATE produit SET stock = GREATEST(stock - ?, 0) WHERE id=?")
             ->execute([(int)$c['quantite'], (int)$c['produit_id']]);
         $pdo->commit();

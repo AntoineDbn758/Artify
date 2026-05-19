@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Callback de retour Stripe si l'utilisateur annule. La commande est marquee
+ * 'annulee'. Aucun montant n'a ete debite (Stripe ne capture qu'apres
+ * confirmation cote acheteur).
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Paiement annulé - Artify';

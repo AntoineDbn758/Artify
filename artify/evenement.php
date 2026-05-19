@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Fiche d'un evenement. Affiche les details + un bouton pour s'inscrire
+ * (insertion dans la table inscription_evenement). Necessite un user connecte
+ * ; sinon redirection vers la page de login.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $id = (int)($_GET['id'] ?? 0);
 
@@ -7,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'inscr
     csrf_check();
     require_login();
     $eid = (int)($_POST['evenement_id'] ?? 0);
+    // On laisse l'UNIQUE (evenement_id, utilisateur_id) de la table faire le travail anti-doublon, plutot que de check avant insert.
     try {
         $pdo->prepare("INSERT INTO inscription_evenement (evenement_id, utilisateur_id)
                        VALUES (?, ?)")
@@ -34,11 +42,12 @@ if (!$e) {
 }
 $page_title = $e['titre'] . ' - Artify';
 
-// Compte d'inscrits
+// Compte d'inscrits actifs : on exclut les annulations pour afficher la jauge de places restantes correctement.
 $st = $pdo->prepare("SELECT COUNT(*) FROM inscription_evenement WHERE evenement_id = ? AND statut != 'annulee'");
 $st->execute([$id]);
 $nb_inscrits = (int)$st->fetchColumn();
 
+// On verifie l'inscription seulement si l'utilisateur est logge, sinon on economise une requete pour les visiteurs anonymes.
 $deja_inscrit = false;
 if (is_logged()) {
     $st = $pdo->prepare("SELECT id FROM inscription_evenement WHERE evenement_id = ? AND utilisateur_id = ?");

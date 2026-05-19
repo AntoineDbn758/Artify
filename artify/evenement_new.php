@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Creation d'un evenement par l'artisan : titre, description, lieu, ville,
+ * date debut, date fin optionnelle, capacite max, prix d'entree. L'evenement
+ * apparait ensuite dans evenements.php.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Nouvel événement - Artify';

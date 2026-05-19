@@ -5,7 +5,9 @@ Projet ISEP 2025-2026.
 
 ## Stack
 
-- **Frontend** : HTML + CSS (rendu cote serveur, sans JavaScript)
+- **Frontend** : HTML + CSS (rendu cote serveur) + JavaScript vanilla pour
+  l'amelioration progressive (menu mobile, accordeon FAQ, preview image,
+  boutons +/- de quantite, etc.)
 - **Backend** : PHP 8.2 + PDO prepare
 - **Base de donnees** : MariaDB 10.11 (18 tables)
 - **Paiement** : Stripe Checkout (mode test)

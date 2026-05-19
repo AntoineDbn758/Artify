@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Donnees de demo brutes : tableaux PHP listant les utilisateurs, artisans,
+ * produits, evenements, etc. Pas de logique ici, juste des arrays.
+ * _seed_demo.php les boucle pour les inserer.
+ */
+
 /**
  * Données utilisées par _seed_demo.php (séparé pour rester sous 300 lignes).
  * À supprimer en même temps que _seed_demo.php avant la mise en prod.

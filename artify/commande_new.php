@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Point d'entree du parcours de paiement. Cree une commande 'en_attente' dans
+ * la BDD, demande a Stripe une URL de Checkout (carte test 4242 4242 4242
+ * 4242 en mode test), puis redirige le client vers cette URL. Stripe gere
+ * tout l'affichage du formulaire carte, on n'a rien a coder cote front.
+ */
+
 /**
  * commande_new.php - Crée une commande "en_attente" puis redirige vers
  * la page Stripe Checkout (mode test).
@@ -35,6 +43,8 @@ if (!stripe_configured()) {
 }
 
 // Récupère le produit
+// Quantite forcee a 1 minimum pour eviter les commandes a zero
+// ou negatives via parametre trafique.
 $pid = (int)($_POST['produit_id'] ?? $_GET['produit_id'] ?? 0);
 $qty = max(1, (int)($_POST['quantite'] ?? 1));
 if (!$pid) { http_response_code(400); die('Produit manquant.'); }
@@ -59,7 +69,8 @@ $user_id   = current_user_id();
 $prix_unit = (float)$p['prix'];
 $total     = $prix_unit * $qty;
 
-// Crée la commande en BDD (statut en_attente)
+// Transaction : la commande et sa ligne doivent etre creees
+// ensemble, sinon rollback complet pour eviter une commande orpheline.
 $pdo->beginTransaction();
 try {
     $pdo->prepare(
@@ -85,6 +96,8 @@ $u->execute([$user_id]);
 $email = $u->fetchColumn() ?: null;
 
 // Crée la session Stripe Checkout
+// {CHECKOUT_SESSION_ID} est un placeholder que Stripe remplace
+// par l'ID reel a la redirection vers la page success.
 $base    = rtrim(getenv('APP_BASE_URL') ?: 'http://127.0.0.1/artify', '/');
 $success = "$base/commande_success.php?commande={$commande_id}&session={CHECKOUT_SESSION_ID}";
 $cancel  = "$base/commande_cancel.php?commande={$commande_id}";
@@ -94,6 +107,8 @@ $session = stripe_create_checkout(
     $success, $cancel, $email
 );
 
+// Si Stripe a echoue, on annule la commande en BDD pour rester
+// coherent et eviter qu'elle traine en 'en_attente'.
 if (($session['_http_code'] ?? 0) !== 200 || empty($session['url'])) {
     $pdo->prepare("UPDATE commande SET statut='annulee' WHERE id=?")->execute([$commande_id]);
     include __DIR__ . '/includes/header.php';
@@ -109,7 +124,8 @@ if (($session['_http_code'] ?? 0) !== 200 || empty($session['url'])) {
     exit;
 }
 
-// Stocke l'id de session Stripe pour la réconciliation côté success
+// On stocke l'ID de session Stripe sur la commande pour pouvoir
+// la retrouver et la confirmer cote commande_success.
 $pdo->prepare("UPDATE commande SET message_personnalisation=? WHERE id=?")
     ->execute([$session['id'], $commande_id]);
 

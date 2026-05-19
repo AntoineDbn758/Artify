@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Tableau de bord de l'artisan connecte. Liste ses produits, ses evenements
+ * et ses ventes. Boutons pour ajouter un nouveau produit ou un nouvel
+ * evenement.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Ma boutique - Artify';

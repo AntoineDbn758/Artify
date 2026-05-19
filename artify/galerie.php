@@ -1,7 +1,15 @@
 <?php
+
+/**
+ * Galerie virtuelle : mosaique de visuels des creations soumis par les
+ * artisans. Les images sont stockees dans la table galerie avec leur URL et
+ * un titre/description optionnels.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Galerie - Artify';
 
+// Limite a 60 pour eviter une page interminable, suffisant pour donner un apercu de la diversite des creations.
 $items = $pdo->query(
   "SELECT g.id, g.image_url, g.titre, g.description, a.nom_boutique, a.id AS aid
      FROM galerie g JOIN artisan a ON a.id = g.artisan_id

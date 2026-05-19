@@ -1,6 +1,13 @@
 <?php
+
+/**
+ * Page des mentions legales. Une seule ligne en BDD (table mention_legale),
+ * mise a jour depuis le backoffice.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Mentions légales - Artify';
+// On lit la derniere ligne mise a jour, meme si en theorie la table n'en contient qu'une seule.
 $ml = $pdo->query("SELECT contenu, updated_at FROM mention_legale ORDER BY updated_at DESC LIMIT 1")->fetch();
 include __DIR__ . '/includes/header.php';
 ?>

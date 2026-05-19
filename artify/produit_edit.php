@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Edition d'un produit existant. Verifie au prealable que le produit
+ * appartient bien a l'artisan connecte (anti-IDOR). Permet aussi de remplacer
+ * la photo principale.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
 $page_title = 'Modifier un produit - Artify';

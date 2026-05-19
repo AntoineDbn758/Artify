@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * Liste des messages de contact recus, filtrable par statut (traite / non
+ * traite). Bouton 'marquer comme traite' pour clore un ticket.
+ */
+
 $page_title = 'Contacts - Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */

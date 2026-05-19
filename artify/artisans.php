@@ -1,7 +1,15 @@
 <?php
+
+/**
+ * Annuaire des artisans actifs. Chaque artisan a une photo d'atelier choisie
+ * selon sa specialite (mapping en debut de fichier vers des photos Unsplash
+ * thematiques). Affiche aussi sa note moyenne et le nombre d'avis si > 0.
+ */
+
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Artisans - Artify';
 
+// On masque les artisans dont le compte a ete suspendu, mais on garde leurs produits accessibles en cache via produit.php.
 $artisans = $pdo->query(
   "SELECT a.id, a.nom_boutique, a.specialite, a.description, a.note_moyenne, a.nb_avis,
           u.prenom, u.nom, u.ville
@@ -33,7 +41,8 @@ include __DIR__ . '/includes/header.php';
   <div class="empty">Aucun artisan inscrit pour le moment.</div>
 <?php else: ?>
   <div class="grid grid-3" style="margin-top:20px">
-    <?php foreach ($artisans as $a):
+    <?php // Mapping specialite vers photo Unsplash thematique, avec fallback si la specialite n'est pas connue.
+    foreach ($artisans as $a):
         $atelier = $ATELIER_PHOTOS[$a['specialite']] ?? $DEFAULT_ATELIER;
     ?>
       <a class="card" href="artisan.php?id=<?= (int)$a['id'] ?>" style="color:inherit">
