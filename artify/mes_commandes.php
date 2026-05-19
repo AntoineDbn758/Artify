@@ -10,6 +10,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $page_title = 'Mes commandes - Artify';
 
+// GROUP_CONCAT permet d'afficher tous les produits d'une commande sur une seule ligne du tableau sans faire un sous-SELECT par ligne.
 $st = $pdo->prepare(
     "SELECT c.id, c.montant_total, c.statut, c.created_at, a.nom_boutique,
             COUNT(lc.id) AS nb_lignes,
@@ -25,6 +26,7 @@ $st = $pdo->prepare(
 $st->execute([current_user_id()]);
 $commandes = $st->fetchAll();
 
+// Mapping statut vers classe CSS du badge, plus simple a faire en PHP qu'avec une cascade de if dans la vue.
 $badge = [
     'en_attente'      => 'badge muted',
     'confirmee'       => 'badge ok',

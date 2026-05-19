@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/includes/bootstrap.php';
 $page_title = 'Inscription - Artify';
+// Code d'erreur en GET utilise comme un enum pour afficher le bon message, plus simple qu'une session flash pour ce cas precis.
 $err = $_GET['err'] ?? '';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -45,6 +46,7 @@ include __DIR__ . '/includes/header.php';
       <label>Confirmer le mot de passe</label>
       <input type="password" name="password_confirm" required minlength="6">
     </div>
+    <?php // Selecteur visiteur/artisan : choisir artisan declenche aussi la creation d'un enregistrement dans la table artisan cote inscription.php. ?>
     <div class="form-row">
       <label>Type de compte</label>
       <select name="role">

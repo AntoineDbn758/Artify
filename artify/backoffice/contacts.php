@@ -12,6 +12,7 @@ require_once __DIR__ . '/_header.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
+    // Toggle traite/non-traite : permet de rouvrir un ticket cloture par erreur.
     if (($_POST['action'] ?? '') === 'toggle') {
         $pdo->prepare("UPDATE contact SET traite = 1 - traite WHERE id = ?")->execute([$id]);
         flash_set('success', 'Statut mis à jour.');
@@ -22,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('contacts.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
+// Filtre simple sur le statut ; sans filtre, tout est liste mais avec les non
+// traites en premier (cf. ORDER BY traite ASC plus bas).
 $f = $_GET['f'] ?? '';
 $where = ''; $params = [];
 if ($f === 'nontr') { $where = "WHERE traite = 0"; }

@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $contenu = trim($_POST['contenu'] ?? '');
     if ($contenu) {
+        // Pattern upsert : update si une ligne existe deja, sinon premier insert.
+        // Volontairement pas de versioning ici, on ecrase l'ancien contenu.
         $existing = $pdo->query("SELECT id FROM mention_legale ORDER BY updated_at DESC LIMIT 1")->fetch();
         if ($existing) {
             $pdo->prepare("UPDATE mention_legale SET contenu = ? WHERE id = ?")
@@ -27,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('mentions.php');
 }
 
+// Recupere l'unique ligne en base ; le LIMIT 1 evite tout cas pathologique
+// si plusieurs ont ete inserees par erreur.
 $ml = $pdo->query("SELECT * FROM mention_legale ORDER BY updated_at DESC LIMIT 1")->fetch();
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Mentions légales</div>
