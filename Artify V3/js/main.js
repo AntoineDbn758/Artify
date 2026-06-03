@@ -12,24 +12,6 @@
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) { return Array.from((root || document).querySelectorAll(sel)); }
 
-  // === Menu mobile (hamburger) ===========================================
-  // Sur petits ecrans, .nav-links est cache par defaut. On le toggle quand
-  // l'utilisateur clique sur le bouton hamburger ajoute dynamiquement.
-  function setupMobileMenu() {
-    var nav = $('nav.site-nav') || $('nav');
-    var links = $('.nav-links');
-    if (!nav || !links) return;
-    var btn = document.createElement('button');
-    btn.className = 'nav-burger';
-    btn.setAttribute('aria-label', 'Ouvrir le menu');
-    btn.innerHTML = '<span></span><span></span><span></span>';
-    nav.appendChild(btn);
-    btn.addEventListener('click', function () {
-      links.classList.toggle('is-open');
-      btn.classList.toggle('is-active');
-    });
-  }
-
   // === Accordeon FAQ ======================================================
   // Sur faq.php, chaque question peut s'ouvrir / se fermer au clic.
   // Necessite que le markup soit <details><summary>...</summary>...</details>
@@ -194,7 +176,6 @@
   }
 
   function boot() {
-    setupMobileMenu();
     setupFaqAccordion();
     setupImagePreview();
     setupQtyButtons();
