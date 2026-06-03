@@ -1,0 +1,304 @@
+/*
+  Feuille de style globale du site public. Definit la palette ocre/cuivre dans
+  :root (variables CSS), la nav sticky, les composants (card, button, badge,
+  form), et les media queries pour le responsive (4 breakpoints : 1100, 900,
+  760, 480px).
+*/
+
+/* css/style.css - Artify, palette ocre / chaleureuse */
+/* Variables centralisees dans :root pour pouvoir basculer la palette en un point unique. */
+:root{
+  /* Tons neutres : fond pages, surfaces cartes, accents chauds, bordures. */
+  --bg:#F5F0E8; --surface:#FDFAF6; --warm:#EAE0D0; --border:#DDD0BC;
+  /* Accent principal ocre + variantes claires utilisees pour hover et badges. */
+  --ocre:#C4855A; --ocre-light:#D49A72; --ocre-pale:#F5EDE2;
+  --violet:#C4855A; --violet-light:#D49A72; --violet-pale:#F5EDE2; /* alias rétro-compatibilité */
+  /* Accents secondaires utilises ponctuellement (succes, info). */
+  --pink:#2D6A5A; --blue:#B8963E;
+  /* Niveaux de texte du plus fonce au plus discret. */
+  --dark:#2C1A0E; --mid:#5C3D28; --muted:#9C7E65; --white:#FDFAF6;
+  /* Degrades : grad = boutons primaires, grad-soft = fonds doux (hero, thumb fallback). */
+  --grad: linear-gradient(135deg,#28cb1c 0%,#8B4A20 55%,#B8963E 100%);
+  --grad-soft: linear-gradient(135deg,#F5EDE2 0%,#EAE0D0 55%,#F0EBD8 100%);
+  /* Ombre subtile sous la nav sticky pour la detacher du contenu. */
+  --shadow-nav: 0 2px 12px rgba(140,80,30,0.10);
+  /* z-index hierarchises pour eviter les conflits empilement (nav < dropdown < modal). */
+  --z-nav:200; --z-dropdown:300; --z-modal:400;
+}
+/* Reset minimal : marges/paddings a zero et box-sizing border-box global pour eviter les surprises de calcul. */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--dark);font-family:'DM Sans',system-ui,sans-serif;line-height:1.55}
+/* Body en flex column pour pouvoir coller le footer en bas via margin-top auto sur le footer. */
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--ocre);text-decoration:none}
+a:hover{text-decoration:underline}
+html{font-size:15px}
+body{font-size:1rem}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;color:var(--dark);font-weight:700;line-height:1.25}
+h1{font-size:1.75rem;margin-bottom:14px}
+h2{font-size:1.35rem;margin:18px 0 10px}
+h3{font-size:1.1rem;margin:12px 0 8px}
+h4{font-size:1rem;margin:10px 0 6px}
+p{margin:6px 0;color:var(--mid);font-size:.95rem}
+.card h3{font-size:1rem}
+.card .meta,.card .price{font-size:.85rem}
+.meta{font-size:.85rem}
+.accent-strip{height:4px;background:var(--grad)}
+
+/* - NAV - */
+/* Nav sticky en haut avec z-index dedie pour passer au-dessus du contenu pendant le scroll. */
+nav{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow-nav);
+  padding:0 28px;min-height:68px;
+  display:flex;align-items:center;gap:20px;
+  position:sticky;top:0;z-index:var(--z-nav);
+  /* nowrap force le menu sur une ligne, les links sont caches en mobile via media query. */
+  flex-wrap:nowrap;
+  width:100%;
+}
+.logo{font-family:'Playfair Display',serif;font-size:22px;display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none;flex-shrink:0}
+.logo:hover{text-decoration:none}
+.logo-a{width:36px;height:36px;background:var(--ocre);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;font-family:'Playfair Display',serif;line-height:1}
+.logo-text{color:var(--ocre);font-family:'Playfair Display',serif}
+.nav-links{display:flex;gap:20px;list-style:none;flex-shrink:1;min-width:0}
+.nav-links a{color:var(--mid);font-weight:500;font-size:14px;white-space:nowrap}
+.nav-links a:hover{color:var(--ocre);text-decoration:none}
+.nav-search{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+.nav-search input{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font:inherit;width:170px;min-width:0}
+.nav-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.btn-ghost,.btn-primary,button.btn-primary,button.btn-ghost{
+  font-family:inherit;font-size:14px;font-weight:500;
+  padding:8px 16px;border-radius:8px;cursor:pointer;text-decoration:none;
+  display:inline-block;border:1.5px solid var(--border);background:none;color:var(--mid);
+  transition:all .2s;white-space:nowrap;
+}
+.btn-ghost:hover{border-color:var(--ocre);color:var(--ocre);text-decoration:none}
+.btn-primary{background:red;border:none;color:#ff1717}
+.btn-primary:hover{filter:brightness(1.05);color:#fff;text-decoration:none}
+.btn-danger{background:#b94c4c;border:none;color:#fff;padding:7px 14px;border-radius:6px;font:inherit;cursor:pointer}
+.btn-small{padding:5px 12px;font-size:13px}
+
+/* - LAYOUT - */
+.page-main{max-width:1180px;margin:0 auto;padding:32px 24px 60px;width:100%;flex:1 0 auto}
+.hero{background:var(--grad-soft);border:1px solid var(--border);border-radius:14px;padding:42px 36px;margin-bottom:30px}
+.hero h1{margin:0 0 14px;font-style:italic}
+.hero p{font-size:17px;color:var(--mid);max-width:680px}
+
+/* - CARDS / GRIDS - */
+/* auto-fill + minmax : nombre de colonnes adapte automatiquement a la largeur dispo, pas de breakpoint manuel. */
+.grid{display:grid;gap:20px}
+.grid-3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;transition:transform .2s,box-shadow .2s}
+/* Hover translate + ombre : effet "soulevement" classique pour signaler que la carte est cliquable. */
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(140,80,30,0.08)}
+.card h3{margin:0 0 6px;font-size:18px}
+.card .price{font-weight:700;color:var(--ocre);font-size:18px;margin-top:6px}
+.card .meta{font-size:13px;color:var(--muted);margin-top:4px}
+/* Thumb : hauteur fixe + object-fit cover, garde l'alignement des cartes meme avec des images de ratios differents. */
+.card .thumb{height:200px;background:var(--grad-soft);border-radius:8px;margin-bottom:12px;background-size:cover;background-position:center;background-repeat:no-repeat;display:block;overflow:hidden}
+.card img.thumb{width:100%;height:200px;object-fit:cover;display:block}
+.tag{display:inline-block;background:var(--ocre-pale);color:var(--ocre);padding:3px 10px;border-radius:12px;font-size:12px;margin-right:4px}
+
+/* - FORMS - */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;max-width:560px;margin:0 auto}
+.form-card h1{margin-bottom:18px}
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:13px;color:var(--mid);margin-bottom:5px;font-weight:500}
+.form-row input,.form-row textarea,.form-row select{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font:inherit;background:var(--surface);color:var(--dark);
+}
+/* Focus : on retire l'outline natif et on bascule la bordure en ocre pour rester dans la palette. */
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{outline:none;border-color:var(--ocre)}
+.form-row textarea{min-height:90px;resize:vertical}
+.form-actions{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+/* - TABLES (backoffice) - */
+.tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:middle}
+.tbl th{background:var(--warm);color:var(--dark);font-weight:600}
+.tbl tr:last-child td{border-bottom:none}
+.tbl form{display:inline-block;margin-right:4px}
+
+/* - FLASH / ALERTS - */
+/* Trois variantes pour les flashs : vert/rouge en couleurs explicites, info ramene a la palette ocre. */
+.flash{padding:12px 16px;border-radius:8px;margin-bottom:14px;border:1px solid;font-size:14px}
+.flash-success{background:#e9f5ee;border-color:#a6d8b8;color:#1e5a35}
+.flash-error{background:#fce8e6;border-color:#e6a8a3;color:#7a2a1f}
+.flash-info{background:var(--ocre-pale);border-color:var(--border);color:var(--mid)}
+
+/* - FOOTER - */
+/* margin-top:auto colle le footer en bas de page, en combinaison avec le flex column du body. */
+.footer{background:var(--warm);padding:30px 32px;text-align:center;border-top:1px solid var(--border);flex-shrink:0;margin-top:auto}
+.footer-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--ocre);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700}
+.footer-logo .logo-a{width:32px;height:32px;background:var(--ocre);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;font-family:'Playfair Display',serif;line-height:1}
+.footer-links{display:flex;justify-content:center;gap:22px;margin-bottom:12px;flex-wrap:wrap}
+.footer-links a{color:var(--mid);font-size:14px}
+.footer-links a:hover{color:var(--ocre);text-decoration:none}
+.footer-copy{color:var(--muted);font-size:13px}
+
+/* - DASHBOARD - */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;margin:20px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.stat .num{font-family:'Playfair Display',serif;font-size:36px;color:var(--ocre);font-weight:700}
+.stat .lbl{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:0.05em}
+
+/* - DETAIL PAGE - */
+/* Ratio 1 / 1.4 entre image et texte : visuel toujours present sans ecraser la fiche. */
+.detail{display:grid;grid-template-columns:1fr 1.4fr;gap:30px}
+.detail .visual{background:var(--grad-soft);border:1px solid var(--border);border-radius:12px;min-height:280px;background-size:cover;background-position:center;background-repeat:no-repeat;overflow:hidden}
+.detail img.visual{width:100%;min-height:280px;max-height:480px;object-fit:cover;display:block;background:var(--grad-soft)}
+.detail dl{display:grid;grid-template-columns:140px 1fr;gap:10px 16px;margin-top:14px}
+.detail dt{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:0.04em}
+.detail dd{color:var(--dark);font-size:15px}
+
+/* - BREADCRUMB - */
+.crumb{font-size:13px;color:var(--muted);margin-bottom:10px}
+.crumb a{color:var(--muted)}
+.empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:10px}
+
+/* - DROPDOWN / MODAL z-index - */
+.dropdown,.menu-dropdown{z-index:var(--z-dropdown)}
+.modal,.modal-backdrop{z-index:var(--z-modal)}
+
+/* - RESPONSIVE - */
+/* Quatre breakpoints en cascade : laptop etroit -> tablette -> mobile -> mobile compact. */
+/* 1100px : on resserre la nav pour eviter le wrap du menu. */
+@media (max-width:1100px){
+  nav{padding:0 20px;gap:14px}
+  .nav-links{gap:14px}
+  .nav-links a{font-size:13px}
+  .nav-search input{width:130px}
+}
+/* 900px : on cache le menu lien-par-lien, l'utilisateur passe par les liens du footer. */
+@media (max-width:900px){
+  .nav-links{display:none}
+  .nav-search input{width:120px}
+}
+/* 760px : layout fiche detail repasse en une colonne pour mobile. */
+@media (max-width:760px){
+  nav{padding:0 14px;gap:10px;min-height:60px}
+  .nav-search{margin-left:auto}
+  .nav-search input{width:100px;padding:6px 10px}
+  .nav-search .btn-ghost{padding:6px 10px;font-size:13px}
+  .nav-actions{gap:6px}
+  .btn-ghost,.btn-primary{padding:6px 10px;font-size:13px}
+  .detail{grid-template-columns:1fr}
+  .page-main{padding:18px 14px 40px}
+  h1{font-size:28px}
+  .hero{padding:28px 20px}
+}
+/* 480px : on cache le wordmark du logo et la barre de recherche pour gagner de la place. */
+@media (max-width:480px){
+  nav{padding:0 10px;gap:6px}
+  .logo-text{display:none}
+  .nav-search{display:none}
+  .nav-actions{gap:4px}
+  .btn-ghost,.btn-primary{padding:6px 9px;font-size:12px}
+  .footer{padding:22px 16px}
+  .footer-links{gap:12px}
+  h1{font-size:24px}
+}
+
+/* ============================================================
+   NOUVEAUX COMPOSANTS — MVC views (forum, messagerie, etc.)
+   ============================================================ */
+
+/* === Layout avec sidebar === */
+.layout-with-sidebar{display:flex;gap:24px;max-width:1280px;margin:0 auto;padding:0 20px;flex:1 0 auto;width:100%}
+.layout-with-sidebar .page-main{flex:1;max-width:none;padding:24px 0 60px;margin:0}
+.sidebar{width:220px;flex-shrink:0;padding:24px 0 24px;font-size:.9rem;border-right:1px solid var(--border)}
+.sidebar h3{font-family:'DM Sans',sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 6px;padding-right:18px}
+.sidebar ul{list-style:none;padding:0;margin:0 0 12px}
+.sidebar li{margin:2px 0}
+.sidebar a{display:block;padding:6px 18px 6px 0;color:var(--mid);border-radius:6px;text-decoration:none;transition:all .15s}
+.sidebar a:hover{background:var(--ocre-pale);color:var(--ocre);padding-left:8px}
+@media (max-width:900px){
+  .layout-with-sidebar{flex-direction:column;padding:0 14px}
+  .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:12px 0;display:flex;gap:14px;overflow-x:auto;flex-wrap:wrap}
+  .sidebar h3{margin-top:0}
+  .sidebar ul{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0}
+}
+
+/* === Page contact compacte (sans scroll) === */
+body.compact-contact .layout-with-sidebar{align-items:stretch}
+.contact-compact{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;max-width:980px;margin:0 auto}
+.contact-compact .form-card{margin:0;padding:18px 22px}
+.contact-compact h1{font-size:1.4rem;margin-bottom:6px}
+.contact-compact .form-row{margin-bottom:8px}
+.contact-compact label{font-size:.85rem;margin-bottom:2px;display:block}
+.contact-compact input,.contact-compact textarea{padding:7px 10px;font-size:.9rem}
+.contact-compact textarea{min-height:80px}
+.contact-info{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.contact-info h2{font-size:1.05rem;margin:0 0 8px}
+.contact-info ul{list-style:none;padding:0;margin:0;font-size:.9rem}
+.contact-info li{padding:6px 0;border-bottom:1px dashed var(--border)}
+.contact-info li:last-child{border-bottom:none}
+@media (max-width:700px){ .contact-compact{grid-template-columns:1fr} }
+
+/* === Messagerie === */
+.msg-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.msg-thread{display:block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--dark);transition:all .15s}
+.msg-thread:hover{border-color:var(--ocre);transform:translateX(2px);text-decoration:none}
+.msg-thread-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.msg-thread-preview{font-size:.85rem;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-thread-box{display:flex;flex-direction:column;gap:10px;margin:16px 0;max-height:60vh;overflow-y:auto;padding:8px}
+.msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;border:1px solid var(--border)}
+.msg-bubble.own{align-self:flex-end;background:var(--ocre-pale);border-color:var(--ocre-light)}
+.msg-bubble.other{align-self:flex-start;background:var(--surface)}
+.msg-bubble-meta{font-size:.72rem;color:var(--muted);margin-bottom:3px}
+.msg-bubble-body{font-size:.92rem}
+.msg-form{display:flex;gap:8px;align-items:flex-end}
+.msg-form textarea{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);font:inherit;resize:vertical}
+
+/* === Forum === */
+.forum-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.forum-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.forum-cats a{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--mid);font-size:.82rem;text-decoration:none}
+.forum-cats a.active,.forum-cats a:hover{border-color:var(--ocre);color:var(--ocre);background:var(--ocre-pale);text-decoration:none}
+.forum-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:.88rem}
+.forum-table th{background:var(--warm);text-align:left;padding:10px 12px;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.4px;color:var(--mid)}
+.forum-table td{padding:10px 12px;border-top:1px solid var(--border)}
+.forum-table tr:hover{background:var(--ocre-pale)}
+.forum-table a{color:var(--dark);font-weight:600;text-decoration:none}
+.forum-table a:hover{color:var(--ocre);text-decoration:underline}
+.forum-msg{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:10px 0}
+.forum-msg-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.85rem}
+.forum-msg-body{font-size:.93rem;color:var(--mid);line-height:1.5}
+.forum-reply{background:var(--ocre-pale);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:18px}
+.forum-reply label{display:block;font-weight:600;margin-bottom:6px;font-size:.9rem}
+.forum-reply textarea{width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);font:inherit;resize:vertical;margin-bottom:8px}
+
+/* === Pagination === */
+.pagination{display:flex;gap:4px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+.pagination a{display:inline-block;min-width:34px;text-align:center;padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--mid);text-decoration:none;font-size:.88rem}
+.pagination a.active,.pagination a:hover{background:var(--ocre);color:#fff;border-color:var(--ocre);text-decoration:none}
+
+/* === Password strength === */
+.pwd-strength{margin-top:6px;font-size:.78rem}
+.pwd-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.pwd-bar span{display:block;height:100%;width:0;background:#d44;transition:width .25s,background .25s}
+.pwd-bar.s1 span{width:20%;background:#d44}
+.pwd-bar.s2 span{width:40%;background:#e88a3a}
+.pwd-bar.s3 span{width:60%;background:#d4a740}
+.pwd-bar.s4 span{width:80%;background:#7eaf48}
+.pwd-bar.s5 span{width:100%;background:#3e9e4f}
+.pwd-rules{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px;color:var(--muted)}
+.pwd-rules li::before{content:"○ ";color:var(--muted)}
+.pwd-rules li.ok{color:#3e9e4f}
+.pwd-rules li.ok::before{content:"✓ ";color:#3e9e4f}
+
+/* === Recherche multicritère === */
+.search-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin:14px 0}
+.search-filters label{display:block;font-size:.78rem;color:var(--mid);margin-bottom:3px;font-weight:600}
+.search-filters input,.search-filters select{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font:inherit;font-size:.88rem;background:#fff}
+.search-filters .actions{display:flex;gap:6px;align-items:end}
+
+/* === Badge === */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;background:var(--warm);color:var(--mid);font-size:.72rem;font-weight:600}
+.badge.ok{background:#e8f4ea;color:#3e9e4f}
+.badge.err{background:#fdecec;color:#d44}
+.badge.muted{background:var(--warm);color:var(--muted)}
