@@ -103,21 +103,21 @@
   }
 
   // === Show / hide password ===============================================
-  // Petit bouton oeil a cote des champs mot de passe pour verifier ce qu'on
-  // tape (Pour les fautes de frappe).
   function setupPasswordToggle() {
     $$('input[type="password"]').forEach(function (input) {
+      var wrap = document.createElement('div');
+      wrap.style.position = 'relative';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      input.style.paddingRight = '62px';
+
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'pwd-toggle';
       btn.textContent = 'Afficher';
-      btn.style.marginLeft = '6px';
-      btn.style.fontSize = '12px';
-      btn.style.background = 'transparent';
-      btn.style.border = 'none';
-      btn.style.color = 'var(--ocre, #C4855A)';
-      btn.style.cursor = 'pointer';
-      input.parentNode.insertBefore(btn, input.nextSibling);
+      btn.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;background:transparent;border:none;color:var(--ocre,#C4855A);cursor:pointer;padding:0;line-height:1';
+      wrap.appendChild(btn);
+
       btn.addEventListener('click', function () {
         if (input.type === 'password') {
           input.type = 'text'; btn.textContent = 'Masquer';

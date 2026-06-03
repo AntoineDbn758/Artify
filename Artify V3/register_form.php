@@ -27,13 +27,15 @@ include __DIR__ . '/includes/header.php';
 
   <form method="post" action="inscription.php" autocomplete="on" data-pwd-strength>
     <?= csrf_field() ?>
-    <div class="form-row">
-      <label>Nom</label>
-      <input type="text" name="nom" required>
-    </div>
-    <div class="form-row">
-      <label>Prénom</label>
-      <input type="text" name="prenom" required>
+    <div class="form-row-group">
+      <div class="form-row">
+        <label>Nom</label>
+        <input type="text" name="nom" required>
+      </div>
+      <div class="form-row">
+        <label>Prénom</label>
+        <input type="text" name="prenom" required>
+      </div>
     </div>
     <div class="form-row">
       <label>Email</label>
