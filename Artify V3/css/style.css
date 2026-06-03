@@ -18,7 +18,7 @@
   /* Niveaux de texte du plus fonce au plus discret. */
   --dark:#2C1A0E; --mid:#5C3D28; --muted:#9C7E65; --white:#FDFAF6;
   /* Degrades : grad = boutons primaires, grad-soft = fonds doux (hero, thumb fallback). */
-  --grad: linear-gradient(135deg,#28cb1c 0%,#8B4A20 55%,#B8963E 100%);
+  --grad: linear-gradient(135deg,#C4855A 0%,#8B4A20 55%,#B8963E 100%);
   --grad-soft: linear-gradient(135deg,#F5EDE2 0%,#EAE0D0 55%,#F0EBD8 100%);
   /* Ombre subtile sous la nav sticky pour la detacher du contenu. */
   --shadow-nav: 0 2px 12px rgba(140,80,30,0.10);
@@ -32,17 +32,11 @@ html,body{background:var(--bg);color:var(--dark);font-family:'DM Sans',system-ui
 body{min-height:100vh;display:flex;flex-direction:column}
 a{color:var(--ocre);text-decoration:none}
 a:hover{text-decoration:underline}
-html{font-size:15px}
-body{font-size:1rem}
-h1,h2,h3,h4{font-family:'Playfair Display',serif;color:var(--dark);font-weight:700;line-height:1.25}
-h1{font-size:1.75rem;margin-bottom:14px}
-h2{font-size:1.35rem;margin:18px 0 10px}
-h3{font-size:1.1rem;margin:12px 0 8px}
-h4{font-size:1rem;margin:10px 0 6px}
-p{margin:6px 0;color:var(--mid);font-size:.95rem}
-.card h3{font-size:1rem}
-.card .meta,.card .price{font-size:.85rem}
-.meta{font-size:.85rem}
+h1,h2,h3{font-family:'Playfair Display',serif;color:var(--dark);font-weight:700}
+h1{font-size:36px;margin-bottom:18px}
+h2{font-size:26px;margin:22px 0 14px}
+h3{font-size:20px;margin:14px 0 10px}
+p{margin:8px 0;color:var(--mid)}
 .accent-strip{height:4px;background:var(--grad)}
 
 /* - NAV - */
@@ -51,10 +45,9 @@ nav{
   background:var(--surface);
   border-bottom:1px solid var(--border);
   box-shadow:var(--shadow-nav);
-  padding:0 28px;min-height:68px;
-  display:flex;align-items:center;gap:20px;
+  padding:0 18px;min-height:64px;
+  display:flex;align-items:center;gap:14px;
   position:sticky;top:0;z-index:var(--z-nav);
-  /* nowrap force le menu sur une ligne, les links sont caches en mobile via media query. */
   flex-wrap:nowrap;
   width:100%;
 }
@@ -62,20 +55,30 @@ nav{
 .logo:hover{text-decoration:none}
 .logo-a{width:36px;height:36px;background:var(--ocre);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;font-family:'Playfair Display',serif;line-height:1}
 .logo-text{color:var(--ocre);font-family:'Playfair Display',serif}
-.nav-links{display:flex;gap:20px;list-style:none;flex-shrink:1;min-width:0}
+.nav-links{display:flex;gap:14px;list-style:none;flex-shrink:1;min-width:0;flex-wrap:nowrap;overflow:hidden}
 .nav-links a{color:var(--mid);font-weight:500;font-size:14px;white-space:nowrap}
 .nav-links a:hover{color:var(--ocre);text-decoration:none}
-.nav-search{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
-.nav-search input{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font:inherit;width:170px;min-width:0}
-.nav-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.nav-search{display:flex;gap:4px;margin-left:auto;flex-shrink:1;min-width:0}
+.nav-search input{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font:inherit;width:140px;min-width:90px}
+.nav-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.nav-actions .btn-ghost{padding:6px 10px;font-size:13px}
+.nav-actions #a11y-btn{padding:5px 9px}
 .btn-ghost,.btn-primary,button.btn-primary,button.btn-ghost{
   font-family:inherit;font-size:14px;font-weight:500;
   padding:8px 16px;border-radius:8px;cursor:pointer;text-decoration:none;
   display:inline-block;border:1.5px solid var(--border);background:none;color:var(--mid);
   transition:all .2s;white-space:nowrap;
 }
+@media (max-width:1200px){
+  .nav-links{gap:10px}
+  .nav-links a{font-size:13px}
+  .nav-search input{width:110px}
+}
+@media (max-width:1000px){
+  .nav-search{display:none}
+}
 .btn-ghost:hover{border-color:var(--ocre);color:var(--ocre);text-decoration:none}
-.btn-primary{background:red;border:none;color:#ff1717}
+.btn-primary{background:var(--grad);border:none;color:#fff}
 .btn-primary:hover{filter:brightness(1.05);color:#fff;text-decoration:none}
 .btn-danger{background:#b94c4c;border:none;color:#fff;padding:7px 14px;border-radius:6px;font:inherit;cursor:pointer}
 .btn-small{padding:5px 12px;font-size:13px}

@@ -6,7 +6,7 @@ use PDOException;
 
 /**
  * Connexion BDD — Singleton.
- * XAMPP local : 127.0.0.1:3306, user root sans mot de passe, base "artify".
+ * Auto-détecte XAMPP local (127.0.0.1) ou Docker (DB_HOST=db).
  */
 final class Database
 {
@@ -15,9 +15,12 @@ final class Database
     public static function pdo(): PDO
     {
         if (self::$instance !== null) return self::$instance;
-        $dsn = "mysql:host=127.0.0.1;port=3306;dbname=artify;charset=utf8mb4";
+        $host = getenv('DB_HOST') ?: '127.0.0.1';
+        $user = getenv('DB_USER') ?: 'root';
+        $pass = getenv('DB_PASSWORD') ?: '';
+        $dsn  = "mysql:host=$host;port=3306;dbname=artify;charset=utf8mb4";
         try {
-            self::$instance = new PDO($dsn, 'root', '', [
+            self::$instance = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
