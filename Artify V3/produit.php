@@ -73,9 +73,6 @@ include __DIR__ . '/includes/header.php';
           </label>
           <button type="submit" class="btn-primary">Commander</button>
         </form>
-        <p style="margin-top:8px;font-size:12px;color:var(--muted)">
-          Paiement sécurisé via Stripe. Aucune donnée bancaire n'est stockée par Artify.
-        </p>
       <?php else: ?>
         <div style="margin-top:18px">
           <a class="btn-primary"

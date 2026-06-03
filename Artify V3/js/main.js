@@ -86,22 +86,6 @@
     });
   }
 
-  // === Loading state sur le bouton Commander ==============================
-  // Stripe peut prendre 1-2s pour creer la session. On evite que
-  // l'utilisateur clique 3 fois en lui montrant que c'est parti.
-  function setupSubmitLoading() {
-    $$('form[action*="commande_new"]').forEach(function (form) {
-      form.addEventListener('submit', function () {
-        var btn = form.querySelector('button[type="submit"]');
-        if (!btn || btn.dataset.loading === '1') return;
-        btn.dataset.loading = '1';
-        btn.dataset.originalText = btn.textContent;
-        btn.textContent = 'Redirection vers le paiement...';
-        btn.disabled = true;
-      });
-    });
-  }
-
   // === Show / hide password ===============================================
   function setupPasswordToggle() {
     $$('input[type="password"]').forEach(function (input) {
@@ -179,7 +163,6 @@
     setupFaqAccordion();
     setupImagePreview();
     setupQtyButtons();
-    setupSubmitLoading();
     setupPasswordToggle();
     setupDeleteFeedback();
     setupPasswordStrength();
