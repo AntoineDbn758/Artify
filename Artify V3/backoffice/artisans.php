@@ -69,6 +69,7 @@ $rows = $st->fetchAll();
       <td><?= (int)$a['nb_produits'] ?></td>
       <td><?= $a['verifie'] ? '<span class="badge ok">vérifié</span>' : '<span class="badge warn">non</span>' ?></td>
       <td class="actions">
+        <a class="btn-edit btn-small" href="artisan_edit.php?id=<?= (int)$a['id'] ?>">Modifier</a>
         <a class="btn-ghost btn-small" href="produits.php?artisan_id=<?= (int)$a['id'] ?>">Produits</a>
         <form method="post">
           <?= csrf_field() ?>

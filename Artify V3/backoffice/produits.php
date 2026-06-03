@@ -103,6 +103,7 @@ $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_bouti
       <td><?= (int)$p['stock'] ?></td>
       <td><?= $p['est_publie'] ? '<span class="badge ok">oui</span>' : '<span class="badge muted">non</span>' ?></td>
       <td class="actions">
+        <a class="btn-edit btn-small" href="produit_edit.php?id=<?= (int)$p['id'] ?>">Modifier</a>
         <form method="post">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="toggle_publie">

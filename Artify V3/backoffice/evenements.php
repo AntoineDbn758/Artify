@@ -90,6 +90,7 @@ $rows = $pdo->query(
         <td><?= (int)$e['nb_inscrits'] ?></td>
         <td><?= $e['est_publie'] ? '<span class="badge ok">oui</span>' : '<span class="badge muted">non</span>' ?></td>
         <td class="actions">
+          <a class="btn-edit btn-small" href="evenement_edit.php?id=<?= (int)$e['id'] ?>">Modifier</a>
           <a class="btn-ghost btn-small" href="evenements.php?view=<?= (int)$e['id'] ?>">Inscrits</a>
           <form method="post">
             <?= csrf_field() ?>
