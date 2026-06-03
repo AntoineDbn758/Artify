@@ -80,48 +80,46 @@ $last_contacts = $pdo->query(
   </a>
 </div>
 
-<div class="grid grid-2" style="gap:24px">
-  <div class="admin-card">
-    <h3>Commandes par statut</h3>
-    <?php if (!$cmd_stats): ?>
-      <div class="empty-state">Aucune commande pour le moment.</div>
-    <?php else: ?>
-      <table class="adm">
-        <thead><tr><th>Statut</th><th>Nombre</th><th>%</th></tr></thead>
-        <tbody>
-        <?php foreach ($cmd_stats as $row):
-          $pc = $cmd_total ? round(100*$row['n']/$cmd_total, 1) : 0; ?>
-          <tr>
-            <td><span class="badge"><?= h($row['statut']) ?></span></td>
-            <td><?= (int)$row['n'] ?></td>
-            <td><?= h($pc) ?> %</td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
-  </div>
+<div class="admin-card">
+  <h3>Commandes par statut</h3>
+  <?php if (!$cmd_stats): ?>
+    <div class="empty-state">Aucune commande pour le moment.</div>
+  <?php else: ?>
+    <table class="adm">
+      <thead><tr><th>Statut</th><th>Nombre</th><th>%</th></tr></thead>
+      <tbody>
+      <?php foreach ($cmd_stats as $row):
+        $pc = $cmd_total ? round(100*$row['n']/$cmd_total, 1) : 0; ?>
+        <tr>
+          <td><span class="badge"><?= h($row['statut']) ?></span></td>
+          <td><?= (int)$row['n'] ?></td>
+          <td><?= h($pc) ?> %</td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php endif; ?>
+</div>
 
-  <div class="admin-card">
-    <h3>Dernières inscriptions</h3>
-    <?php if (!$last_users): ?>
-      <div class="empty-state">Aucun utilisateur.</div>
-    <?php else: ?>
-      <table class="adm">
-        <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Date</th></tr></thead>
-        <tbody>
-        <?php foreach ($last_users as $u): ?>
-          <tr>
-            <td><?= h(trim(($u['prenom'] ?? '') . ' ' . ($u['nom'] ?? ''))) ?></td>
-            <td><?= h($u['email']) ?></td>
-            <td><span class="badge role-<?= h($u['role']) ?>"><?= h($u['role']) ?></span></td>
-            <td><?= h(date('d/m/Y', strtotime($u['created_at']))) ?></td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
-  </div>
+<div class="admin-card">
+  <h3>Dernières inscriptions</h3>
+  <?php if (!$last_users): ?>
+    <div class="empty-state">Aucun utilisateur.</div>
+  <?php else: ?>
+    <table class="adm">
+      <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Date</th></tr></thead>
+      <tbody>
+      <?php foreach ($last_users as $u): ?>
+        <tr>
+          <td><?= h(trim(($u['prenom'] ?? '') . ' ' . ($u['nom'] ?? ''))) ?></td>
+          <td><?= h($u['email']) ?></td>
+          <td><span class="badge role-<?= h($u['role']) ?>"><?= h($u['role']) ?></span></td>
+          <td><?= h(date('d/m/Y', strtotime($u['created_at']))) ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php endif; ?>
 </div>
 
 <div class="admin-card" style="margin-top:18px">

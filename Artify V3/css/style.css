@@ -302,6 +302,18 @@ body.compact-contact .layout-with-sidebar{align-items:stretch}
 .search-filters input,.search-filters select{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font:inherit;font-size:.88rem;background:#fff}
 .search-filters .actions{display:flex;gap:6px;align-items:end}
 
+/* === Notation étoiles === */
+.stars-display{color:var(--ocre);font-size:18px;letter-spacing:2px;line-height:1}
+.stars-display .empty{color:var(--border)}
+.stars-form{display:flex;flex-direction:row-reverse;gap:4px;justify-content:flex-end}
+.stars-form input[type=radio]{display:none}
+.stars-form label{font-size:28px;color:var(--border);cursor:pointer;transition:color .15s}
+.stars-form input:checked ~ label,.stars-form label:hover,.stars-form label:hover ~ label{color:var(--ocre)}
+.review-list{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.review-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.review-item-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:13px;color:var(--muted)}
+.review-item-body{font-size:14px;color:var(--mid);overflow-wrap:break-word;word-break:break-word}
+
 /* === Badge === */
 .badge{display:inline-block;padding:2px 8px;border-radius:12px;background:var(--warm);color:var(--mid);font-size:.72rem;font-weight:600}
 .badge.ok{background:#e8f4ea;color:#3e9e4f}

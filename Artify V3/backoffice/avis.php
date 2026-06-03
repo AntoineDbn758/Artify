@@ -38,6 +38,21 @@ $st = $pdo->prepare($sql); $st->execute($params);
 $rows = $st->fetchAll();
 
 $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_boutique")->fetchAll();
+
+// Avis produits
+if (($_POST['action'] ?? '') === 'delete_produit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $pdo->prepare("DELETE FROM avis_produit WHERE id = ?")->execute([(int)$_POST['id']]);
+    flash_set('success', 'Avis produit supprimé.');
+    redirect('avis.php');
+}
+$avis_produits = $pdo->query(
+    "SELECT ap.id, ap.note, ap.commentaire, ap.created_at,
+            u.prenom, u.nom, u.email, p.nom AS produit_nom, p.id AS produit_id
+       FROM avis_produit ap
+       JOIN utilisateur u ON u.id = ap.utilisateur_id
+       JOIN produit p ON p.id = ap.produit_id
+      ORDER BY ap.created_at DESC"
+)->fetchAll();
 ?>
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Avis</div>
 <h1>Modération des avis <span style="color:var(--muted);font-size:18px">(<?= count($rows) ?>)</span></h1>
@@ -96,4 +111,40 @@ $artisans = $pdo->query("SELECT id, nom_boutique FROM artisan ORDER BY nom_bouti
   </tbody>
 </table>
 <?php endif; ?>
+
+<h2 style="margin-top:32px">Avis produits <span style="color:var(--muted);font-size:16px">(<?= count($avis_produits) ?>)</span></h2>
+<?php if (!$avis_produits): ?>
+  <div class="empty-state">Aucun avis produit pour le moment.</div>
+<?php else: ?>
+<table class="adm">
+  <thead><tr>
+    <th>#</th><th>Date</th><th>Client</th><th>Produit</th><th>Note</th><th>Commentaire</th><th class="actions">Actions</th>
+  </tr></thead>
+  <tbody>
+  <?php foreach ($avis_produits as $ap): ?>
+    <tr>
+      <td><?= (int)$ap['id'] ?></td>
+      <td><?= h(date('d/m/Y', strtotime($ap['created_at']))) ?></td>
+      <td><?= h(trim(($ap['prenom'] ?? '') . ' ' . ($ap['nom'] ?? ''))) ?><br>
+          <span style="font-size:12px;color:var(--muted)"><?= h($ap['email']) ?></span></td>
+      <td><a href="../produit.php?id=<?= (int)$ap['produit_id'] ?>" target="_blank"><?= h($ap['produit_nom']) ?></a></td>
+      <td>
+        <?php $cls = (int)$ap['note'] <= 2 ? 'err' : ((int)$ap['note'] === 3 ? 'warn' : 'ok'); ?>
+        <span class="badge <?= $cls ?>"><?= str_repeat('★', (int)$ap['note']) . str_repeat('☆', 5-(int)$ap['note']) ?></span>
+      </td>
+      <td style="max-width:320px"><?= nl2br(h(mb_substr($ap['commentaire'] ?? '', 0, 200))) ?><?= mb_strlen($ap['commentaire'] ?? '')>200?'…':'' ?></td>
+      <td class="actions">
+        <form method="post" onsubmit="return confirm('Supprimer cet avis ?')">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="delete_produit">
+          <input type="hidden" name="id" value="<?= (int)$ap['id'] ?>">
+          <button class="btn-danger btn-small" type="submit">Supprimer</button>
+        </form>
+      </td>
+    </tr>
+  <?php endforeach; ?>
+  </tbody>
+</table>
+<?php endif; ?>
+
 <?php require_once __DIR__ . '/_footer.php'; ?>
