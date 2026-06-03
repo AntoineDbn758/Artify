@@ -85,7 +85,7 @@ include __DIR__ . '/includes/header.php';
       <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
         <span class="stars-display">
           <?php for ($i=1;$i<=5;$i++): ?>
-            <?= $i <= round($note_moy) ? '★' : '<span class="star-empty">★</span>' ?>
+            <?= $i <= round($note_moy) ? '★' : '<span class="empty">★</span>' ?>
           <?php endfor; ?>
         </span>
         <span style="font-size:14px;color:var(--muted)"><?= number_format($note_moy,1) ?>/5 (<?= $note_nb ?> avis)</span>
@@ -113,17 +113,16 @@ include __DIR__ . '/includes/header.php';
 
     <?php if ((int)$p['stock'] > 0): ?>
       <?php if (is_logged()): ?>
-        <form method="post" action="panier_ajouter.php"
+        <form method="post" action="commande_new.php"
               style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <?= csrf_field() ?>
           <input type="hidden" name="produit_id" value="<?= (int)$p['id'] ?>">
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px">
-            Qté
+          <label style="display:flex;align-items:center;gap:6px">
+            Quantité
             <input type="number" name="quantite" value="1" min="1" max="<?= (int)$p['stock'] ?>"
-                   style="width:60px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font:inherit">
+                   style="width:70px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px">
           </label>
-          <button type="submit" class="btn-primary">🛒 Ajouter au panier</button>
-          <a class="btn-ghost" href="panier.php">Voir le panier</a>
+          <button type="submit" class="btn-primary">Commander</button>
         </form>
       <?php else: ?>
         <div style="margin-top:16px">
@@ -180,7 +179,7 @@ include __DIR__ . '/includes/header.php';
           <div class="review-item-head">
             <span class="stars-display" style="font-size:15px">
               <?php for ($i=1;$i<=5;$i++): ?>
-                <?= $i <= (int)$av['note'] ? '★' : '<span class="star-empty">★</span>' ?>
+                <?= $i <= (int)$av['note'] ? '★' : '<span class="empty">★</span>' ?>
               <?php endfor; ?>
             </span>
             <strong style="color:var(--dark)"><?= h($av['prenom'] . ' ' . mb_substr($av['nom'],0,1) . '.') ?></strong>

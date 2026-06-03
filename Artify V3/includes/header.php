@@ -59,11 +59,6 @@ if (is_logged()) {
   <div class="nav-actions">
     <button id="a11y-btn" type="button" class="btn-ghost" aria-label="Options d'accessibilité" title="Accessibilité">A+</button>
   <?php if (is_logged()): ?>
-    <?php $nb_panier = array_sum(array_column($_SESSION['panier'] ?? [], 'quantite')); ?>
-    <a class="btn-ghost" href="<?= h($base) ?>panier.php" aria-label="Mon panier" title="Mon panier" style="position:relative">
-      🛒<?php if ($nb_panier > 0): ?><span style="position:absolute;top:-4px;right:-4px;background:var(--ocre);color:#fff;border-radius:50%;font-size:10px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700"><?= $nb_panier ?></span><?php endif; ?>
-    </a>
-  <?php endif; ?>
     <a class="btn-ghost" href="<?= h($base) ?>messages.php" aria-label="Messagerie">
       ✉ <?php if ($unread_msg > 0): ?><span class="badge err"><?= $unread_msg ?></span><?php endif; ?>
     </a>
