@@ -71,7 +71,7 @@ include __DIR__ . '/includes/header.php';
                 <?php $note_deja = $mes_notes[$l['produit_id']] ?? null; ?>
                 <?php if ($note_deja): ?>
                   <span class="stars-display" style="font-size:15px" title="Votre note">
-                    <?php for ($i=1;$i<=5;$i++) echo $i<=$note_deja?'★':'<span class="empty">★</span>'; ?>
+                    <?php for ($i=1;$i<=5;$i++) echo $i<=$note_deja?'★':'<span class="star-empty">★</span>'; ?>
                   </span>
                 <?php else: ?>
                   <a class="btn-ghost btn-small" href="produit.php?id=<?= (int)$l['produit_id'] ?>#avis">

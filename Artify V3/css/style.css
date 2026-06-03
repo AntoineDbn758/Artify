@@ -304,7 +304,7 @@ body.compact-contact .layout-with-sidebar{align-items:stretch}
 
 /* === Notation étoiles === */
 .stars-display{color:var(--ocre);font-size:18px;letter-spacing:2px;line-height:1}
-.stars-display .empty{color:var(--border)}
+.stars-display .star-empty{color:var(--border)}
 .stars-form{display:flex;flex-direction:row-reverse;gap:4px;justify-content:flex-end}
 .stars-form input[type=radio]{display:none}
 .stars-form label{font-size:28px;color:var(--border);cursor:pointer;transition:color .15s}

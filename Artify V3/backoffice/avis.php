@@ -130,7 +130,7 @@ $avis_produits = $pdo->query(
       <td><a href="../produit.php?id=<?= (int)$ap['produit_id'] ?>" target="_blank"><?= h($ap['produit_nom']) ?></a></td>
       <td>
         <?php $cls = (int)$ap['note'] <= 2 ? 'err' : ((int)$ap['note'] === 3 ? 'warn' : 'ok'); ?>
-        <span class="badge <?= $cls ?>"><?= str_repeat('★', (int)$ap['note']) . str_repeat('☆', 5-(int)$ap['note']) ?></span>
+        <span class="badge <?= $cls ?>" style="font-size:13px;letter-spacing:1px"><?= str_repeat('★', (int)$ap['note']) . str_repeat('☆', 5-(int)$ap['note']) ?></span>
       </td>
       <td style="max-width:320px"><?= nl2br(h(mb_substr($ap['commentaire'] ?? '', 0, 200))) ?><?= mb_strlen($ap['commentaire'] ?? '')>200?'…':'' ?></td>
       <td class="actions">
