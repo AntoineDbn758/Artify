@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Buffer tout l'output : permet les redirect() même après HTML généré
 // backoffice/_header.php — header dédié au backoffice :
 //   - inclut la nav publique (style cohérent) via includes/header.php
 //   - ouvre un layout flex avec une sidebar gauche

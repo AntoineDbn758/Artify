@@ -27,6 +27,7 @@ function h($s): string {
     return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 }
 function redirect(string $url): void {
+    if (ob_get_level()) ob_end_clean();
     header('Location: ' . $url);
     exit;
 }
