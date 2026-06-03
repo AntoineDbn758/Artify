@@ -51,7 +51,7 @@ include __DIR__ . '/includes/header.php';
 <div class="crumb"><a href="index.php">Accueil</a> &rsaquo; <a href="evenements.php">Événements</a> &rsaquo; <?= h($e['titre']) ?></div>
 
 <div class="detail">
-  <img class="visual" src="https://images.unsplash.com/photo-1559563458-527698bf5295?w=800&h=600&fit=crop&q=80" alt="<?= h($e['titre']) ?>">
+  <img class="visual" src="<?= h($e['image_url'] ?: 'https://images.unsplash.com/photo-1559563458-527698bf5295?w=800&h=600&fit=crop&q=80') ?>" alt="<?= h($e['titre']) ?>">
   <div>
     <h1><?= h($e['titre']) ?></h1>
     <p class="meta">Organisé par <a href="artisan.php?id=<?= (int)$e['aid'] ?>"><?= h($e['nom_boutique']) ?></a></p>

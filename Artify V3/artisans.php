@@ -4,7 +4,7 @@ $page_title = 'Artisans — Artify';
 
 $artisans = $pdo->query(
   "SELECT a.id, a.nom_boutique, a.specialite, a.description, a.note_moyenne, a.nb_avis,
-          u.prenom, u.nom, u.ville
+          u.prenom, u.nom, u.ville, u.avatar_url
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
     WHERE u.est_actif = 1
     ORDER BY a.nom_boutique ASC"
@@ -34,7 +34,7 @@ include __DIR__ . '/includes/header.php';
 <?php else: ?>
   <div class="grid grid-3" style="margin-top:20px">
     <?php foreach ($artisans as $a):
-        $atelier = $ATELIER_PHOTOS[$a['specialite']] ?? $DEFAULT_ATELIER;
+        $atelier = $a['avatar_url'] ?: ($ATELIER_PHOTOS[$a['specialite']] ?? $DEFAULT_ATELIER);
     ?>
       <a class="card" href="artisan.php?id=<?= (int)$a['id'] ?>" style="color:inherit">
         <img class="thumb" src="<?= h($atelier) ?>" alt="<?= h($a['nom_boutique']) ?>" loading="lazy">

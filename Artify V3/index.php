@@ -16,7 +16,7 @@ $produits = $pdo->query(
 )->fetchAll();
 
 $artisans = $pdo->query(
-  "SELECT a.id, a.nom_boutique, a.specialite, a.description, u.prenom, u.nom, u.ville
+  "SELECT a.id, a.nom_boutique, a.specialite, a.description, u.prenom, u.nom, u.ville, u.avatar_url
      FROM artisan a JOIN utilisateur u ON u.id = a.utilisateur_id
     WHERE u.est_actif = 1
     ORDER BY a.created_at DESC
@@ -76,7 +76,7 @@ include __DIR__ . '/includes/header.php';
     <div class="grid grid-3">
       <?php foreach ($artisans as $a): ?>
         <a class="card" href="artisan.php?id=<?= (int)$a['id'] ?>" style="color:inherit">
-          <img class="thumb" src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80" alt="<?= h($a['nom_boutique']) ?>" loading="lazy">
+          <img class="thumb" src="<?= h($a['avatar_url'] ?: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=400&fit=crop&q=80') ?>" alt="<?= h($a['nom_boutique']) ?>" loading="lazy">
           <h3><?= h($a['nom_boutique']) ?></h3>
           <div class="meta"><?= h($a['specialite'] ?: '—') ?><?= $a['ville'] ? ' · ' . h($a['ville']) : '' ?></div>
           <p><?= h(mb_substr($a['description'] ?? '', 0, 110)) ?></p>

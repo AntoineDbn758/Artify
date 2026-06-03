@@ -41,8 +41,9 @@ include __DIR__ . '/includes/header.php';
       'Textile'      => 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&h=600&fit=crop&q=80',
       'Ébénisterie'  => 'https://images.unsplash.com/photo-1601058268499-e52658b8bb88?w=800&h=600&fit=crop&q=80',
     ];
-    $atelier_big = $ATELIER_BIG[$artisan['specialite']]
-        ?? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=600&fit=crop&q=80';
+    $atelier_big = $artisan['avatar_url']
+        ?: ($ATELIER_BIG[$artisan['specialite']]
+        ?? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=600&fit=crop&q=80');
   ?>
   <img class="visual" src="<?= h($atelier_big) ?>" alt="<?= h($artisan['nom_boutique']) ?>">
   <div>
