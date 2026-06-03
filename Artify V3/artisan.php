@@ -68,6 +68,18 @@ include __DIR__ . '/includes/header.php';
         <dt>Note</dt><dd><?= number_format((float)$artisan['note_moyenne'], 1) ?> / 5 (<?= (int)$artisan['nb_avis'] ?> avis)</dd>
       <?php endif; ?>
     </dl>
+
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <?php if (is_logged() && current_user_id() !== (int)$artisan['utilisateur_id']): ?>
+        <a class="btn-primary" href="messages.php?action=show&id=<?= (int)$artisan['utilisateur_id'] ?>">
+          ✉ Contacter cet artisan
+        </a>
+      <?php elseif (!is_logged()): ?>
+        <a class="btn-ghost" href="login_form.php?next=<?= h('artisan.php?id=' . $id) ?>">
+          Se connecter pour contacter
+        </a>
+      <?php endif; ?>
+    </div>
   </div>
 </div>
 
