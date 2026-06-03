@@ -1,8 +1,3 @@
--- Dump SQL initial de la base 'artify'. Importe automatiquement au premier
--- demarrage du conteneur MariaDB grace au mecanisme docker-entrypoint-initdb.d.
--- Contient les 18 tables (utilisateur, artisan, produit, categorie, evenement,
--- ...) et quelques lignes de demarrage (categories de base, FAQ initiale).
-
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
@@ -26,7 +21,7 @@ SET time_zone = "+00:00";
 -- Base de données : `artify`
 --
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `artisan`
@@ -55,7 +50,7 @@ INSERT INTO `artisan` (`id`, `utilisateur_id`, `nom_boutique`, `specialite`, `de
 (2, 3, 'Lucas Céramiques', 'Céramique', 'Pièces uniques en grès et porcelaine.', NULL, NULL, 0.00, 0, 0, '2026-04-15 11:02:01'),
 (3, 4, 'Fils & Trame', 'Textile', 'Tissage artisanal et broderies contemporaines.', NULL, NULL, 0.00, 0, 0, '2026-04-15 11:02:01');
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `avis`
@@ -71,7 +66,7 @@ CREATE TABLE `avis` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `categorie`
@@ -89,16 +84,16 @@ CREATE TABLE `categorie` (
 --
 
 INSERT INTO `categorie` (`id`, `nom`, `emoji`, `slug`) VALUES
-(1, 'Bijouterie', '', 'bijouterie'),
-(2, 'Céramique', '', 'ceramique'),
-(3, 'Textile', '', 'textile'),
-(4, 'Ébénisterie', '', 'ebenisterie'),
-(5, 'Cuir', '', 'cuir'),
-(6, 'Verrerie', '', 'verrerie'),
-(7, 'Peinture', '', 'peinture'),
-(8, 'Illustration', '️', 'illustration');
+(1, 'Bijouterie', '💎', 'bijouterie'),
+(2, 'Céramique', '🏺', 'ceramique'),
+(3, 'Textile', '🧵', 'textile'),
+(4, 'Ébénisterie', '🪵', 'ebenisterie'),
+(5, 'Cuir', '👜', 'cuir'),
+(6, 'Verrerie', '🪟', 'verrerie'),
+(7, 'Peinture', '🎨', 'peinture'),
+(8, 'Illustration', '✏️', 'illustration');
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `cgu`
@@ -112,7 +107,7 @@ CREATE TABLE `cgu` (
   `est_actif` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `commande`
@@ -132,7 +127,7 @@ CREATE TABLE `commande` (
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `contact`
@@ -148,7 +143,7 @@ CREATE TABLE `contact` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `evenement`
@@ -170,7 +165,7 @@ CREATE TABLE `evenement` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `faq`
@@ -194,7 +189,7 @@ INSERT INTO `faq` (`id`, `question`, `reponse`, `ordre`, `est_actif`, `updated_a
 (2, 'Les paiements sont-ils sécurisés ?', 'Oui, tous les paiements transitent par une plateforme certifiée PCI-DSS.', 2, 1, '2026-04-15 11:02:01'),
 (3, 'Puis-je commander une pièce personnalisée ?', 'Oui, sur la fiche produit, activez l\'option « Personnalisation » et précisez vos souhaits.', 3, 1, '2026-04-15 11:02:01');
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `favori`
@@ -207,7 +202,7 @@ CREATE TABLE `favori` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `galerie`
@@ -224,7 +219,7 @@ CREATE TABLE `galerie` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `image_produit`
@@ -238,7 +233,7 @@ CREATE TABLE `image_produit` (
   `est_principale` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `inscription_evenement`
@@ -252,7 +247,7 @@ CREATE TABLE `inscription_evenement` (
   `statut` enum('confirmee','liste_attente','annulee') NOT NULL DEFAULT 'confirmee'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `ligne_commande`
@@ -267,7 +262,7 @@ CREATE TABLE `ligne_commande` (
   `details_personnalisation` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `mention_legale`
@@ -279,7 +274,7 @@ CREATE TABLE `mention_legale` (
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `messagerie`
@@ -294,7 +289,7 @@ CREATE TABLE `messagerie` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `produit`
@@ -326,7 +321,7 @@ INSERT INTO `produit` (`id`, `artisan_id`, `categorie_id`, `nom`, `description`,
 (2, 2, 2, 'Bol en grès émaillé', NULL, 65.00, 'Grès chamotté, émail mat', NULL, NULL, 8, 0, 1, '2026-04-15 11:02:01', '2026-04-15 11:02:01'),
 (3, 3, 3, 'Écharpe tissée main', NULL, 89.00, 'Laine mérinos, soie', NULL, NULL, 5, 0, 1, '2026-04-15 11:02:01', '2026-04-15 11:02:01');
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `recherche_log`
@@ -340,7 +335,7 @@ CREATE TABLE `recherche_log` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `utilisateur`

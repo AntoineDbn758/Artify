@@ -1,12 +1,5 @@
 <?php
-
-/**
- * Gestion versionnee des CGU. Creer une nouvelle version desactive
- * automatiquement les anciennes. La page publique cgu.php affiche toujours la
- * version active la plus recente.
- */
-
-$page_title = 'CGU - Backoffice Artify';
+$page_title = 'CGU — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
@@ -17,8 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $version = trim($_POST['version'] ?? '1.0');
         $date = $_POST['date_effet'] ?: date('Y-m-d');
         if ($contenu) {
-            // On desactive tout avant d'inserer la nouvelle version : invariant
-            // metier "une seule CGU active a la fois".
             $pdo->exec("UPDATE cgu SET est_actif = 0");
             $pdo->prepare("INSERT INTO cgu (contenu, version, date_effet, est_actif) VALUES (?,?,?,1)")
                 ->execute([$contenu, $version, $date]);
@@ -36,8 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('cgu.php');
 }
 
-// On charge tout l'historique trie du plus recent au plus ancien, puis on
-// repere la version active a afficher en tete de page.
 $all = $pdo->query("SELECT * FROM cgu ORDER BY date_effet DESC, id DESC")->fetchAll();
 $current = null;
 foreach ($all as $c) if ($c['est_actif']) { $current = $c; break; }
@@ -62,7 +51,6 @@ foreach ($all as $c) if ($c['est_actif']) { $current = $c; break; }
   <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="create">
-    <?php // Pre-rempli avec la version courante +0.1 pour simplifier l'incrementation. ?>
     <div class="form-row"><label>Version</label>
       <input type="text" name="version" value="<?= h($current ? sprintf('%.1f', (float)$current['version'] + 0.1) : '1.0') ?>" style="width:140px"></div>
     <div class="form-row"><label>Date d'effet</label>

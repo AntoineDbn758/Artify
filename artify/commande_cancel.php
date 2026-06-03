@@ -1,28 +1,19 @@
 <?php
-
-/**
- * Callback de retour Stripe si l'utilisateur annule. La commande est marquee
- * 'annulee'. Aucun montant n'a ete debite (Stripe ne capture qu'apres
- * confirmation cote acheteur).
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
-$page_title = 'Paiement annulé - Artify';
+$page_title = 'Paiement annulé — Artify';
 
 $commande_id = (int)($_GET['commande'] ?? 0);
 
 if ($commande_id) {
-    // Triple filtre id + utilisateur + statut : on annule uniquement
-    // sa propre commande encore en_attente, jamais une confirmee.
+    // Marque la commande comme annulée (sans toucher au stock)
     $pdo->prepare(
         "UPDATE commande SET statut='annulee'
           WHERE id = ? AND utilisateur_id = ? AND statut='en_attente'"
     )->execute([$commande_id, current_user_id()]);
 }
 
-// Pre-recupere le produit pour afficher un bouton de retour
-// direct vers la fiche article et faciliter une nouvelle tentative.
+// Récupère l'éventuel produit pour proposer un retour
 $produit_id = 0;
 if ($commande_id) {
     $st = $pdo->prepare("SELECT produit_id FROM ligne_commande WHERE commande_id = ? LIMIT 1");

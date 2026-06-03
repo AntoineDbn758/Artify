@@ -1,17 +1,8 @@
 <?php
-
-/**
- * Dashboard : cartes de statistiques (nombre d'utilisateurs par role, nombre
- * de produits, nombre de commandes par statut, messages contact non traites,
- * ...). Vue d'ensemble rapide de la plateforme.
- */
-
-$page_title = 'Dashboard - Backoffice Artify';
+$page_title = 'Dashboard — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 
 /** @var PDO $pdo */
-// Bloc de comptages pour les cartes du dashboard. Un COUNT() par metric pour
-// rester lisible plutot qu'un gros UNION.
 $counts = [
   'users_total'      => (int)$pdo->query("SELECT COUNT(*) FROM utilisateur")->fetchColumn(),
   'users_actif'      => (int)$pdo->query("SELECT COUNT(*) FROM utilisateur WHERE est_actif=1")->fetchColumn(),
@@ -28,7 +19,7 @@ $counts = [
   'categories'       => (int)$pdo->query("SELECT COUNT(*) FROM categorie")->fetchColumn(),
 ];
 
-// Statuts de commandes (group by) ; le total sert au calcul des pourcentages en bas du tableau.
+// Statuts de commandes (group by)
 $cmd_stats = $pdo->query(
   "SELECT statut, COUNT(*) AS n FROM commande GROUP BY statut"
 )->fetchAll();
@@ -44,7 +35,7 @@ $last_contacts = $pdo->query(
 ?>
 <div class="crumb"><a href="../index.php">Accueil</a> &rsaquo; Backoffice</div>
 <h1>Dashboard</h1>
-<p>Vue d'ensemble de la plateforme Artify - données en temps réel.</p>
+<p>Vue d'ensemble de la plateforme Artify — données en temps réel.</p>
 
 <div class="stat-grid">
   <a class="stat-card" href="users.php">
@@ -75,7 +66,6 @@ $last_contacts = $pdo->query(
     <div class="num"><?= $cmd_total ?></div>
     <div class="lbl">Commandes</div>
   </a>
-  <?php // La carte passe en rouge des qu'au moins un contact attend une reponse. ?>
   <a class="stat-card <?= $counts['contacts_nontr']>0 ? 'danger' : '' ?>" href="contacts.php">
     <div class="num"><?= $counts['contacts_nontr'] ?></div>
     <div class="lbl">Contacts non traités</div>
@@ -99,7 +89,6 @@ $last_contacts = $pdo->query(
       <table class="adm">
         <thead><tr><th>Statut</th><th>Nombre</th><th>%</th></tr></thead>
         <tbody>
-        <?php // Garde-fou anti-division-par-zero quand il n'y a aucune commande. ?>
         <?php foreach ($cmd_stats as $row):
           $pc = $cmd_total ? round(100*$row['n']/$cmd_total, 1) : 0; ?>
           <tr>

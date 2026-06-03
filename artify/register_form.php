@@ -1,14 +1,6 @@
 <?php
-
-/**
- * Formulaire d'inscription (le visuel). Le POST est traite par
- * inscription.php. Propose deux types de comptes : visiteur (par defaut) ou
- * artisan (cree aussi automatiquement une boutique liee).
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
-$page_title = 'Inscription - Artify';
-// Code d'erreur en GET utilise comme un enum pour afficher le bon message, plus simple qu'une session flash pour ce cas precis.
+$page_title = 'Inscription — Artify';
 $err = $_GET['err'] ?? '';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -22,9 +14,18 @@ include __DIR__ . '/includes/header.php';
     <div class="flash flash-error">Les deux mots de passe ne correspondent pas.</div>
   <?php elseif ($err === '3'): ?>
     <div class="flash flash-error">Tous les champs obligatoires doivent être remplis.</div>
+  <?php elseif ($err === 'weak'): ?>
+    <div class="flash flash-error">
+      Mot de passe trop faible :
+      <ul style="margin:6px 0 0 18px">
+        <?php foreach (($_SESSION['pwd_errors'] ?? []) as $e): ?>
+          <li><?= h($e) ?></li>
+        <?php endforeach; unset($_SESSION['pwd_errors']); ?>
+      </ul>
+    </div>
   <?php endif; ?>
 
-  <form method="post" action="inscription.php" autocomplete="on">
+  <form method="post" action="inscription.php" autocomplete="on" data-pwd-strength>
     <?= csrf_field() ?>
     <div class="form-row">
       <label>Nom</label>
@@ -40,13 +41,22 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="form-row">
       <label>Mot de passe</label>
-      <input type="password" name="password" required minlength="6">
+      <input type="password" name="password" id="pwd" required minlength="8" autocomplete="new-password">
+      <div class="pwd-strength" aria-live="polite">
+        <div class="pwd-bar"><span></span></div>
+        <ul class="pwd-rules">
+          <li data-rule="len">8 caractères</li>
+          <li data-rule="upper">Majuscule</li>
+          <li data-rule="lower">Minuscule</li>
+          <li data-rule="digit">Chiffre</li>
+          <li data-rule="special">Spécial</li>
+        </ul>
+      </div>
     </div>
     <div class="form-row">
       <label>Confirmer le mot de passe</label>
-      <input type="password" name="password_confirm" required minlength="6">
+      <input type="password" name="password_confirm" required minlength="8" autocomplete="new-password">
     </div>
-    <?php // Selecteur visiteur/artisan : choisir artisan declenche aussi la creation d'un enregistrement dans la table artisan cote inscription.php. ?>
     <div class="form-row">
       <label>Type de compte</label>
       <select name="role">

@@ -1,16 +1,8 @@
 <?php
-
-/**
- * Tableau de bord de l'artisan connecte. Liste ses produits, ses evenements
- * et ses ventes. Boutons pour ajouter un nouveau produit ou un nouvel
- * evenement.
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
 require_role('artisan');
-$page_title = 'Ma boutique - Artify';
+$page_title = 'Ma boutique — Artify';
 
-// Filet de securite : le role artisan est verifie par require_role, mais on garde un fallback si l'enregistrement artisan a ete supprime apres coup.
 $artisan = current_artisan($pdo);
 if (!$artisan) {
     flash_set('error', 'Aucune boutique trouvée pour ce compte.');
@@ -34,10 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         redirect('boutique.php');
     }
 }
-// Refresh des donnees apres l'eventuel UPDATE pour que le formulaire reaffiche les nouvelles valeurs.
-$artisan = current_artisan($pdo);
+$artisan = current_artisan($pdo); // refresh
 
-// On liste TOUS les produits de l'artisan, publies ou pas, car c'est sa vue d'admin (contrairement aux pages publiques).
 $produits = $pdo->prepare(
   "SELECT p.id, p.nom, p.prix, p.stock, p.est_publie, c.nom AS categorie
      FROM produit p JOIN categorie c ON c.id = p.categorie_id

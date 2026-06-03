@@ -1,13 +1,5 @@
 <?php
-
-/**
- * Gestion des utilisateurs. Liste avec filtres par role et recherche par
- * email. Actions par ligne : changer le role, activer/desactiver le compte,
- * supprimer (suppression en cascade manuelle car les FK vers avis, commande,
- * favori, etc. empechent un DELETE direct).
- */
-
-$page_title = 'Utilisateurs - Backoffice Artify';
+$page_title = 'Utilisateurs — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
@@ -15,8 +7,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $action = $_POST['action'] ?? '';
     $id = (int)($_POST['id'] ?? 0);
-    // Anti tir dans le pied : un admin ne doit pas pouvoir se desactiver, se
-    // retrograder ou se supprimer lui-meme depuis la liste.
     if ($id === current_user_id()) {
         flash_set('error', "Tu ne peux pas modifier ton propre compte d'admin.");
         redirect('users.php');
@@ -28,8 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $_POST['role'] ?? 'visiteur';
         if (in_array($role, ['visiteur','artisan','admin'], true)) {
             $pdo->prepare("UPDATE utilisateur SET role = ? WHERE id = ?")->execute([$role, $id]);
-            // Quand on bascule quelqu'un en artisan, il faut lui creer sa fiche
-            // boutique sinon les pages cote artisan plantent au prochain login.
             if ($role === 'artisan') {
                 $st = $pdo->prepare("SELECT id FROM artisan WHERE utilisateur_id = ?");
                 $st->execute([$id]);
@@ -45,8 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'delete') {
         // Suppression en cascade manuelle (les ON DELETE CASCADE n'existent
         // pas sur toutes les FK ; on nettoie d'abord les références).
-        // Tout passe en transaction pour eviter de laisser la BDD a moitie
-        // nettoyee si une des etapes echoue.
         try {
             $pdo->beginTransaction();
             $pdo->prepare("DELETE FROM avis WHERE utilisateur_id = ?")->execute([$id]);
@@ -54,8 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("DELETE FROM inscription_evenement WHERE utilisateur_id = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM messagerie WHERE expediteur_id = ? OR destinataire_id = ?")->execute([$id, $id]);
             $pdo->prepare("DELETE FROM recherche_log WHERE utilisateur_id = ?")->execute([$id]);
-            // Si artisan : on demonte la boutique du bas vers le haut pour
-            // respecter les FK (images puis produits puis artisan).
+            // Si artisan : supprimer ses produits + sa boutique d'abord
             $art = $pdo->prepare("SELECT id FROM artisan WHERE utilisateur_id = ?");
             $art->execute([$id]);
             if ($aid = $art->fetchColumn()) {
@@ -81,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('users.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
-// Filtres : on construit le WHERE dynamiquement pour combiner role et recherche libre.
+// Filtres
 $role_f = $_GET['role'] ?? '';
 $q      = trim($_GET['q'] ?? '');
 $where  = []; $params = [];
@@ -102,7 +87,7 @@ $users = $st->fetchAll();
   </div>
   <div class="fld"><label>Rôle</label>
     <select name="role">
-      <option value="">- tous -</option>
+      <option value="">— tous —</option>
       <?php foreach (['visiteur','artisan','admin'] as $r): ?>
         <option value="<?= $r ?>" <?= $role_f===$r?'selected':'' ?>><?= $r ?></option>
       <?php endforeach; ?>
@@ -137,10 +122,11 @@ $users = $st->fetchAll();
           </select>
         </form>
       </td>
-      <td><?= h($u['ville'] ?: '-') ?></td>
+      <td><?= h($u['ville'] ?: '—') ?></td>
       <td><?= $u['est_actif'] ? '<span class="badge ok">oui</span>' : '<span class="badge err">non</span>' ?></td>
       <td><?= h(date('d/m/Y', strtotime($u['created_at']))) ?></td>
       <td class="actions">
+        <a class="btn-edit btn-small" href="user_edit.php?id=<?= (int)$u['id'] ?>">Modifier</a>
         <?php if (!$self): ?>
           <form method="post">
             <?= csrf_field() ?>

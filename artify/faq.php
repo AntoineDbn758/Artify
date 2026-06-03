@@ -1,14 +1,6 @@
 <?php
-
-/**
- * Page FAQ. Lit les questions/reponses depuis la table faq, filtrees sur
- * est_actif=1 et triees par champ ordre. L'admin peut editer le contenu
- * depuis le backoffice sans toucher au code.
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
-$page_title = 'FAQ - Artify';
-// On trie par ordre puis par id : ordre permet a l'admin de prioriser certaines questions, id sert de tie-breaker stable.
+$page_title = 'FAQ — Artify';
 $faqs = $pdo->query("SELECT question, reponse FROM faq WHERE est_actif = 1 ORDER BY ordre ASC, id ASC")->fetchAll();
 include __DIR__ . '/includes/header.php';
 ?>

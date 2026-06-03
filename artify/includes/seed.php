@@ -1,11 +1,5 @@
 <?php
-
-/**
- * Utilitaire de seed reutilisable. Pas charge en production, sert uniquement
- * pour repeupler la base de demo en environnement de developpement.
- */
-
-// includes/seed.php - initialise des données de démo si nécessaire.
+// includes/seed.php — initialise des données de démo si nécessaire.
 // Idempotent : safe à appeler à chaque chargement, ne fait rien si les
 // données réelles sont déjà en place.
 //
@@ -92,7 +86,7 @@ function ensure_demo_seed(PDO $pdo): void {
             }
         }
     } catch (\Throwable $e) {
-        // silencieux - on ne veut pas bloquer le site sur une erreur de seed
+        // silencieux — on ne veut pas bloquer le site sur une erreur de seed
         error_log('[seed] ' . $e->getMessage());
     }
 }

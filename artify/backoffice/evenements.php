@@ -1,11 +1,5 @@
 <?php
-
-/**
- * Gestion des evenements : publication, depublication, suppression. Bouton
- * pour voir la liste des inscrits par evenement.
- */
-
-$page_title = 'Événements - Backoffice Artify';
+$page_title = 'Événements — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
@@ -13,7 +7,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
-    // Toggle publication : un evt depublie n'apparait plus sur le site public.
     if ($action === 'toggle_publie') {
         $pdo->prepare("UPDATE evenement SET est_publie = 1 - est_publie WHERE id = ?")->execute([$id]);
         flash_set('success', 'Publication basculée.');
@@ -24,8 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('evenements.php' . (isset($_GET['view']) ? '?view=' . (int)$_GET['view'] : ''));
 }
 
-// Mode "detail" : si ?view=<id> est present, on charge l'evt + la liste des
-// inscrits pour afficher la fiche au lieu du listing.
+// Voir inscrits ?
 $view = (int)($_GET['view'] ?? 0);
 if ($view > 0) {
     $evt = $pdo->prepare(
@@ -44,8 +36,6 @@ if ($view > 0) {
     }
 }
 
-// On ne compte que les inscriptions "confirmee" pour eviter de gonfler le
-// chiffre avec les annulations ou les en-attente.
 $rows = $pdo->query(
   "SELECT e.*, a.nom_boutique,
           (SELECT COUNT(*) FROM inscription_evenement ie WHERE ie.evenement_id = e.id AND ie.statut='confirmee') AS nb_inscrits
@@ -56,7 +46,7 @@ $rows = $pdo->query(
 <div class="crumb"><a href="index.php">Backoffice</a> &rsaquo; Événements</div>
 
 <?php if ($view > 0 && isset($evt) && $evt): ?>
-  <h1>Inscrits - <?= h($evt['titre']) ?></h1>
+  <h1>Inscrits — <?= h($evt['titre']) ?></h1>
   <p class="meta"><?= h($evt['nom_boutique']) ?> · <?= h(date('d/m/Y H:i', strtotime($evt['date_debut']))) ?> · <?= h($evt['ville'] ?: '') ?></p>
   <p><a class="btn-ghost btn-small" href="evenements.php">&lsaquo; Retour à la liste</a></p>
   <?php if (!$ins): ?>
@@ -94,7 +84,7 @@ $rows = $pdo->query(
         <td><?= h($e['titre']) ?></td>
         <td><?= h($e['nom_boutique']) ?></td>
         <td><?= h(date('d/m/Y H:i', strtotime($e['date_debut']))) ?></td>
-        <td><?= h($e['ville'] ?: '-') ?></td>
+        <td><?= h($e['ville'] ?: '—') ?></td>
         <td><?= number_format((float)$e['prix_entree'], 2, ',', ' ') ?> €</td>
         <td><?= $e['capacite_max'] !== null ? (int)$e['capacite_max'] : '∞' ?></td>
         <td><?= (int)$e['nb_inscrits'] ?></td>

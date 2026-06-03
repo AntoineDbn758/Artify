@@ -1,15 +1,4 @@
 <?php
-
-/**
- * Wrapper minimal autour de l'API Stripe. Volontairement sans SDK officiel
- * pour ne pas ajouter de dependance composer : on parle directement a
- * https://api.stripe.com via curl en envoyant des donnees form-urlencoded.
- * Fonctions principales : stripe_configured() pour savoir si les cles d'env
- * sont presentes, stripe_create_checkout() pour ouvrir une session Stripe
- * Checkout. Les cles sont lues depuis STRIPE_PUBLISHABLE_KEY et
- * STRIPE_SECRET_KEY.
- */
-
 /**
  * Wrapper minimal Stripe API (sans SDK).
  * Lit STRIPE_SECRET_KEY et STRIPE_PUBLISHABLE_KEY depuis l'environnement.
@@ -23,8 +12,6 @@ function stripe_keys(): array {
     ];
 }
 
-// On verifie le prefixe pour eviter d'envoyer des appels avec
-// des cles manifestement invalides (typo ou variable vide).
 function stripe_configured(): bool {
     $k = stripe_keys();
     return $k['sk'] !== '' && $k['pk'] !== ''
@@ -43,8 +30,6 @@ function stripe_is_test_mode(): bool {
  */
 function stripe_post(string $endpoint, array $data): array {
     $k = stripe_keys();
-    // Auth Stripe = Basic avec la cle secrete en username,
-    // mot de passe vide (convention de l'API).
     $ch = curl_init("https://api.stripe.com/v1/$endpoint");
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -95,7 +80,6 @@ function stripe_build_query(array $data, string $prefix = ''): string {
     $parts = [];
     foreach ($data as $k => $v) {
         $key = $prefix === '' ? $k : "{$prefix}[{$k}]";
-        // Recursion pour aplatir les sous tableaux en cle[sous-cle].
         if (is_array($v)) {
             $parts[] = stripe_build_query($v, $key);
         } else {
@@ -111,8 +95,6 @@ function stripe_build_query(array $data, string $prefix = ''): string {
  * Renvoie l'URL de redirection vers la page Stripe.
  */
 function stripe_create_checkout(array $items, string $success_url, string $cancel_url, ?string $customer_email = null): array {
-    // Stripe attend les montants en centimes et le nom du produit
-    // limite a 100 caracteres, sinon l'API renvoie une erreur 400.
     $line_items = [];
     foreach ($items as $i => $it) {
         $line_items[$i] = [
@@ -125,7 +107,6 @@ function stripe_create_checkout(array $items, string $success_url, string $cance
             ],
             'quantity' => max(1, (int)($it['quantite'] ?? 1)),
         ];
-        // Image transmise seulement si l'URL est valide, sinon Stripe rejette.
         if (!empty($it['image_url']) && filter_var($it['image_url'], FILTER_VALIDATE_URL)) {
             $line_items[$i]['price_data']['product_data']['images'] = [$it['image_url']];
         }

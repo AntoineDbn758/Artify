@@ -122,7 +122,7 @@
 
   // === Show / hide password ===============================================
   // Petit bouton oeil a cote des champs mot de passe pour verifier ce qu'on
-  // tape (surtout utile sur mobile ou les fautes de frappe sont frequentes).
+  // tape (Pour les fautes de frappe).
   function setupPasswordToggle() {
     $$('input[type="password"]').forEach(function (input) {
       var btn = document.createElement('button');
@@ -170,6 +170,29 @@
   // On evite DOMContentLoaded si le script est charge en defer apres la
   // creation du body : on regarde document.readyState pour eviter de
   // rater le bon moment.
+  // === Password strength meter ============================================
+  function setupPasswordStrength() {
+    $$('form[data-pwd-strength]').forEach(function (form) {
+      var input = form.querySelector('#pwd') || form.querySelector('input[name="password"]');
+      var bar   = form.querySelector('.pwd-bar');
+      var rules = form.querySelector('.pwd-rules');
+      if (!input || !bar) return;
+      function evaluate() {
+        var v = input.value || '';
+        var checks = {
+          len: v.length >= 8, upper: /[A-Z]/.test(v), lower: /[a-z]/.test(v),
+          digit: /[0-9]/.test(v), special: /[^A-Za-z0-9]/.test(v),
+        };
+        var score = Object.values(checks).filter(Boolean).length;
+        bar.className = 'pwd-bar s' + score;
+        if (rules) rules.querySelectorAll('li').forEach(function (li) {
+          li.classList.toggle('ok', !!checks[li.dataset.rule]);
+        });
+      }
+      input.addEventListener('input', evaluate); evaluate();
+    });
+  }
+
   function boot() {
     setupMobileMenu();
     setupFaqAccordion();
@@ -178,6 +201,7 @@
     setupSubmitLoading();
     setupPasswordToggle();
     setupDeleteFeedback();
+    setupPasswordStrength();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

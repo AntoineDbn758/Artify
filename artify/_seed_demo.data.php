@@ -1,11 +1,4 @@
 <?php
-
-/**
- * Donnees de demo brutes : tableaux PHP listant les utilisateurs, artisans,
- * produits, evenements, etc. Pas de logique ici, juste des arrays.
- * _seed_demo.php les boucle pour les inserer.
- */
-
 /**
  * Données utilisées par _seed_demo.php (séparé pour rester sous 300 lignes).
  * À supprimer en même temps que _seed_demo.php avant la mise en prod.
@@ -14,7 +7,7 @@
 declare(strict_types=1);
 
 return [
-    // - Bios par email (utilisateur) -
+    // ----- Bios par email (utilisateur) -----
     'bios' => [
         'admin@artify.fr'  => 'Compte administrateur Artify.',
         'sophie@artify.fr' => 'Bijoutière passionnée installée à Paris depuis 2015. Travail de l\'or et des pierres fines.',
@@ -27,7 +20,7 @@ return [
         'kevin@artify.fr'  => 'Curieux des métiers d\'art.',
     ],
 
-    // - Utilisateurs : [nom, prenom, email, role, ville, telephone] -
+    // ----- Utilisateurs : [nom, prenom, email, role, ville, telephone] -----
     'users' => [
         ['Admin',      'Système', 'admin@artify.fr',  'admin',    'Paris',     '+33 1 23 45 67 89'],
         ['Martin',     'Sophie',  'sophie@artify.fr', 'artisan',  'Paris',     '+33 6 12 34 56 78'],
@@ -40,7 +33,7 @@ return [
         ['Robert',     'Kevin',   'kevin@artify.fr',  'visiteur', 'Lille',     '+33 6 44 55 66 77'],
     ],
 
-    // - Artisans : email_user => [nom_boutique, specialite, description, site, ig, note, nb_avis] -
+    // ----- Artisans : email_user => [nom_boutique, specialite, description, site, ig, note, nb_avis] -----
     'artisans' => [
         'sophie@artify.fr' => ['Atelier Sophie M.',  'Bijouterie',   'Créations en or et argent faites main depuis 2015. Pièces uniques, pierres choisies une à une.', 'https://atelier-sophie.example',    'atelier_sophie_m', 4.80, 47],
         'lucas@artify.fr'  => ['Lucas Céramiques',   'Céramique',    'Pièces uniques en grès et porcelaine, cuisson au gaz à 1280°C. Influences japonaises.',              'https://lucas-ceramiques.example',  'lucas_ceramiques', 4.65, 32],
@@ -48,7 +41,7 @@ return [
         'marc@artify.fr'   => ['Boisseau Ébéniste',  'Ébénisterie',  'Mobilier sur mesure en bois massif (chêne, noyer, frêne). Forêts gérées durablement.',              'https://boisseau-ebeniste.example', 'boisseau_ebeniste',4.40, 12],
     ],
 
-    // - Produits : [artisan_email, cat_id, nom, desc, prix, materiaux, dim, delai, stock, perso, seed_image] -
+    // ----- Produits : [artisan_email, cat_id, nom, desc, prix, materiaux, dim, delai, stock, perso, seed_image] -----
     'produits' => [
         ['sophie@artify.fr', 1, 'Bague dorée à l\'or fin',
             'Bague unique en or 18 carats serti d\'un saphir bleu de Ceylan. Poli main et finitions soignées. Fabrication à la cire perdue dans notre atelier parisien. Livraison en écrin offert.',
@@ -97,7 +90,7 @@ return [
             185.00, 'Verre borosilicate soufflé', 'h. 22 cm', 21, 2, 0, 'verre-vase'],
     ],
 
-    // - Événements : [artisan_email, titre, desc, lieu, ville, days_offset, dur_h, prix, cap, seed] -
+    // ----- Événements : [artisan_email, titre, desc, lieu, ville, days_offset, dur_h, prix, cap, seed] -----
     'events' => [
         ['sophie@artify.fr', 'Marché des créateurs - Place des Vosges',
             'Exposition-vente de bijoux contemporains. Rencontrez 30 artisans européens autour d\'un café offert.',
@@ -125,7 +118,7 @@ return [
             'École du bois', 'Nantes', 7, 2, 0.00, 120, 'event-conference-bois'],
     ],
 
-    // - Galerie : [artisan_email, produit_nom_or_null, seed_image, titre, desc] -
+    // ----- Galerie : [artisan_email, produit_nom_or_null, seed_image, titre, desc] -----
     'galerie' => [
         ['sophie@artify.fr', 'Bague dorée à l\'or fin',         'gallery-bague-1',       'Bague saphir - vue de profil', 'Détail du sertissage sur la bague saphir.'],
         ['sophie@artify.fr', 'Collier perles d\'eau douce',     'gallery-collier-1',     'Sautoir en porté',             'Le sautoir en situation, sur une tenue d\'été.'],
@@ -142,7 +135,7 @@ return [
         ['marc@artify.fr',   null,                              'gallery-copeaux',       'Ambiance d\'atelier',          'Les copeaux de chêne après une journée de travail.'],
     ],
 
-    // - FAQ : [question, reponse, ordre] -
+    // ----- FAQ : [question, reponse, ordre] -----
     'faqs' => [
         ['Comment créer un compte ?',                       'Cliquez sur « S\'inscrire » en haut à droite, choisissez votre profil (visiteur ou artisan), remplissez le formulaire. Un email de confirmation peut être demandé selon le mode de déploiement.', 10],
         ['Quels sont les moyens de paiement ?',             'Nous acceptons les cartes Visa, Mastercard et American Express. Le paiement est sécurisé par notre prestataire certifié PCI-DSS. Aucune donnée bancaire n\'est stockée sur nos serveurs.', 11],
@@ -156,7 +149,7 @@ return [
         ['Y a-t-il des frais de port ?',                    'Les frais de port sont calculés au moment du panier en fonction du poids et de la destination. La livraison est offerte dès 150 € d\'achat en France métropolitaine.', 19],
     ],
 
-    // - Commandes : [user_email, artisan_email, statut, adresse, cp, ville, msg, qte] -
+    // ----- Commandes : [user_email, artisan_email, statut, adresse, cp, ville, msg, qte] -----
     'commandes' => [
         ['marie@artify.fr', 'sophie@artify.fr', 'livree',         '12 rue de Rivoli',  '75001', 'Paris',    null, 1],
         ['paul@artify.fr',  'lucas@artify.fr',  'expediee',       '5 avenue Foch',     '69006', 'Lyon',     'Bien emballer svp', 2],
@@ -165,7 +158,7 @@ return [
         ['marie@artify.fr', 'lucas@artify.fr',  'en_attente',     '12 rue de Rivoli',  '75001', 'Paris',    null, 3],
     ],
 
-    // - Avis : [user_email, artisan_email, note, commentaire] -
+    // ----- Avis : [user_email, artisan_email, note, commentaire] -----
     'avis' => [
         ['marie@artify.fr', 'sophie@artify.fr', 5, 'Bague magnifique, le travail est irréprochable. Sophie a été d\'excellents conseils. Je recommande !'],
         ['paul@artify.fr',  'lucas@artify.fr',  5, 'Set de tasses parfait, exactement comme sur les photos. Emballage soigné. Merci Lucas.'],
@@ -176,7 +169,7 @@ return [
         ['julie@artify.fr', 'sophie@artify.fr', 3, 'Bijou très joli mais un peu plus petit que ce que j\'imaginais. Sophie a proposé un échange, service impeccable.'],
     ],
 
-    // - Contact : [nom, email, sujet, message, traite] -
+    // ----- Contact : [nom, email, sujet, message, traite] -----
     'contacts' => [
         ['Léa Bernard',     'lea.bernard@example.com',  'Demande de devis',          'Bonjour, serait-il possible d\'avoir un devis pour 20 bols personnalisés pour un mariage en juillet ? Merci.', 1],
         ['Hugo Carpentier', 'hugo.c@example.com',       'Problème de connexion',     'Bonjour, je n\'arrive pas à me connecter à mon compte depuis ce matin. Pouvez-vous m\'aider ?', 1],
@@ -185,11 +178,11 @@ return [
         ['Camille Roux',    'camille.roux@example.com', 'Article reçu cassé',        'Bonjour, mon vase est arrivé fissuré ce matin. Comment procéder pour un remplacement ou un remboursement ?', 0],
     ],
 
-    // - Textes longs CGU / mention légale -
+    // ----- Textes longs CGU / mention légale -----
     'cgu' => <<<MD
 # Conditions générales d'utilisation
 
-**Version 1.0** - date d'effet : aujourd'hui.
+**Version 1.0** — date d'effet : aujourd'hui.
 
 ## 1. Objet
 Les présentes conditions générales d'utilisation (« CGU ») régissent l'accès et l'usage du site Artify, plateforme de mise en relation entre artisans d'art et acheteurs. En accédant au site, l'utilisateur reconnaît avoir pris connaissance des CGU et les accepter sans réserve.
@@ -223,14 +216,14 @@ MD,
 # Mentions légales
 
 ## Éditeur du site
-Artify SAS - Société par actions simplifiée au capital de 10 000 €.
+Artify SAS — Société par actions simplifiée au capital de 10 000 €.
 Siège social : 12 rue de l'Atelier, 75011 Paris.
 RCS Paris 920 123 456. TVA intracommunautaire : FR 12 920123456.
 Directrice de la publication : Sophie Martin.
-Email : contact@artify.fr - Téléphone : +33 1 23 45 67 89.
+Email : contact@artify.fr — Téléphone : +33 1 23 45 67 89.
 
 ## Hébergeur
-OVHcloud SAS - 2 rue Kellermann, 59100 Roubaix, France.
+OVHcloud SAS — 2 rue Kellermann, 59100 Roubaix, France.
 Téléphone : 1007. Site : ovhcloud.com.
 
 ## Propriété intellectuelle

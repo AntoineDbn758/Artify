@@ -1,16 +1,8 @@
 <?php
-
-/**
- * Page de profil de l'utilisateur connecte. Affiche son avatar, ses infos
- * personnelles, son role, et propose des actions (modifier profil, changer
- * mot de passe, voir sa boutique si artisan, acceder au backoffice si admin).
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
-$page_title = 'Mon profil - Artify';
+$page_title = 'Mon profil — Artify';
 
-// current_artisan renvoie null si l'utilisateur n'a pas le role artisan, ce qui sert ensuite a masquer le menu Ma boutique.
 $u = current_user($pdo);
 $artisan = current_artisan($pdo);
 include __DIR__ . '/includes/header.php';
@@ -31,9 +23,9 @@ include __DIR__ . '/includes/header.php';
     <span class="tag"><?= h($u['role']) ?></span>
     <dl>
       <dt>Email</dt><dd><?= h($u['email']) ?></dd>
-      <dt>Ville</dt><dd><?= h($u['ville'] ?: '-') ?></dd>
-      <dt>Téléphone</dt><dd><?= h($u['telephone'] ?: '-') ?></dd>
-      <dt>Bio</dt><dd><?= nl2br(h($u['bio'] ?: '-')) ?></dd>
+      <dt>Ville</dt><dd><?= h($u['ville'] ?: '—') ?></dd>
+      <dt>Téléphone</dt><dd><?= h($u['telephone'] ?: '—') ?></dd>
+      <dt>Bio</dt><dd><?= nl2br(h($u['bio'] ?: '—')) ?></dd>
       <dt>Membre depuis</dt><dd><?= h(date('d/m/Y', strtotime($u['created_at']))) ?></dd>
     </dl>
     <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
@@ -42,7 +34,6 @@ include __DIR__ . '/includes/header.php';
       <?php if ($artisan): ?>
         <a class="btn-ghost" href="boutique.php">Ma boutique</a>
       <?php endif; ?>
-      <?php // Lien backoffice reserve aux admins, le bouton ne sert qu'a faciliter la navigation, le controle d'acces reste cote backoffice. ?>
       <?php if (is_admin()): ?>
         <a class="btn-ghost" href="backoffice/index.php">Administration</a>
       <?php endif; ?>
@@ -57,7 +48,7 @@ include __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <?php
-// Inscriptions aux evenements : on garde les 10 dernieres pour un apercu, le detail complet n'est pas necessaire ici.
+// Inscriptions aux événements
 $st = $pdo->prepare(
   "SELECT e.id, e.titre, e.date_debut, ie.statut
      FROM inscription_evenement ie JOIN evenement e ON e.id = ie.evenement_id

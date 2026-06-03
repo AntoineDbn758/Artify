@@ -1,16 +1,8 @@
 <?php
-
-/**
- * CRUD complet des categories (Bijouterie, Ceramique, Textile, ...). Le slug
- * est genere automatiquement a partir du nom.
- */
-
-$page_title = 'Catégories - Backoffice Artify';
+$page_title = 'Catégories — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
-// Slug URL-safe : retrait des accents via iconv, remplacement de tout caractere
-// non alphanumerique par un tiret, puis trim des tirets aux bords.
 function slugify(string $s): string {
     $s = mb_strtolower(trim($s), 'UTF-8');
     $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
@@ -25,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nom = trim($_POST['nom'] ?? '');
         $slug = trim($_POST['slug'] ?? '');
         if (!$nom) { flash_set('error', 'Nom requis.'); redirect('categories.php'); }
-        // Slug auto si l'admin n'en a pas saisi un manuellement.
         if (!$slug) $slug = slugify($nom);
         try {
             $pdo->prepare("INSERT INTO categorie (nom, slug) VALUES (?, ?)")->execute([$nom, $slug]);
@@ -48,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'delete') {
         $id = (int)($_POST['id'] ?? 0);
-        // La FK produit.categorie_id empechera la suppression si elle est utilisee.
         try {
             $pdo->prepare("DELETE FROM categorie WHERE id = ?")->execute([$id]);
             flash_set('success', 'Catégorie supprimée.');
@@ -59,8 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('categories.php');
 }
 
-// On compte les produits par categorie pour pouvoir desactiver le bouton
-// supprimer cote UI quand la categorie est encore utilisee.
 $rows = $pdo->query(
   "SELECT c.id, c.nom, c.slug,
           (SELECT COUNT(*) FROM produit p WHERE p.categorie_id = c.id) AS nb
@@ -76,7 +64,7 @@ $rows = $pdo->query(
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="create">
     <div class="form-row"><label>Nom</label><input type="text" name="nom" required></div>
-    <div class="form-row"><label>Slug (optionnel - auto-généré)</label><input type="text" name="slug" placeholder="ex: poterie"></div>
+    <div class="form-row"><label>Slug (optionnel — auto-généré)</label><input type="text" name="slug" placeholder="ex: poterie"></div>
     <div class="form-actions"><button class="btn-primary" type="submit">Ajouter</button></div>
   </form>
 </div>

@@ -1,0 +1,58 @@
+/*
+ * a11y.css — Feuille de style accessibilité.
+ * Trois modes activables via [data-a11y] sur <html> :
+ *   - "dyslexia"    → police OpenDyslexic, espacement augmenté
+ *   - "high-contrast" → fond noir, texte clair, focus visibles
+ *   - "reduced-motion" → désactive transitions et animations
+ * + taille de police ajustable dynamiquement via document.documentElement.style.fontSize
+ */
+
+/* Liens de saut (skip link) — invisible jusqu'au focus clavier */
+.skip-link{position:absolute;left:-9999px;top:auto;padding:8px 14px;background:var(--ocre);color:#fff;border-radius:6px;z-index:9999}
+.skip-link:focus{left:10px;top:10px}
+
+/* Focus visible renforcé pour la navigation clavier */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid var(--ocre);outline-offset:2px;border-radius:4px;
+}
+
+/* === Mode dyslexique === */
+html[data-a11y~="dyslexia"] body,
+html[data-a11y~="dyslexia"] input,
+html[data-a11y~="dyslexia"] textarea,
+html[data-a11y~="dyslexia"] button,
+html[data-a11y~="dyslexia"] select{
+  font-family:'OpenDyslexic','Comic Sans MS','Verdana',sans-serif !important;
+  letter-spacing:.04em;word-spacing:.1em;line-height:1.7;
+}
+html[data-a11y~="dyslexia"] p{font-size:1.05rem}
+
+/* === Mode haut contraste === */
+html[data-a11y~="high-contrast"]{
+  --bg:#000;--surface:#0a0a0a;--warm:#1a1a1a;--border:#fff;
+  --ocre:#FFD24A;--ocre-light:#FFE07A;--ocre-pale:#1a1a1a;
+  --dark:#fff;--mid:#f0f0f0;--muted:#cccccc;--white:#fff;
+  --grad: linear-gradient(135deg,#FFD24A 0%,#FFA500 55%,#FFD24A 100%);
+  --grad-soft: #1a1a1a;
+}
+html[data-a11y~="high-contrast"] .card,
+html[data-a11y~="high-contrast"] .form-card,
+html[data-a11y~="high-contrast"] .forum-table,
+html[data-a11y~="high-contrast"] .msg-thread{border-width:2px}
+html[data-a11y~="high-contrast"] img{opacity:.85}
+
+/* === Mode réduction des animations === */
+html[data-a11y~="reduced-motion"] *{animation:none !important;transition:none !important}
+
+/* Respect des préférences système — fallback automatique */
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* === Panneau d'accessibilité === */
+.a11y-panel{position:fixed;top:80px;right:14px;width:280px;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 4px 24px rgba(0,0,0,.18);z-index:500;display:none}
+.a11y-panel.open{display:block}
+.a11y-panel h3{font-size:.95rem;margin:0 0 8px}
+.a11y-panel .a11y-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:.85rem}
+.a11y-panel button{padding:4px 10px;font-size:.8rem;border:1.5px solid var(--border);background:var(--surface);border-radius:5px;cursor:pointer;color:var(--mid)}
+.a11y-panel button.active{background:var(--ocre);color:#fff;border-color:var(--ocre)}
+.a11y-panel .a11y-size-btns{display:flex;gap:4px}
+.a11y-panel .a11y-close{position:absolute;top:6px;right:8px;background:transparent;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted)}

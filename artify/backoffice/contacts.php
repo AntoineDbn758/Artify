@@ -1,18 +1,11 @@
 <?php
-
-/**
- * Liste des messages de contact recus, filtrable par statut (traite / non
- * traite). Bouton 'marquer comme traite' pour clore un ticket.
- */
-
-$page_title = 'Contacts - Backoffice Artify';
+$page_title = 'Contacts — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
-    // Toggle traite/non-traite : permet de rouvrir un ticket cloture par erreur.
     if (($_POST['action'] ?? '') === 'toggle') {
         $pdo->prepare("UPDATE contact SET traite = 1 - traite WHERE id = ?")->execute([$id]);
         flash_set('success', 'Statut mis à jour.');
@@ -23,8 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('contacts.php' . ($_GET ? '?' . http_build_query($_GET) : ''));
 }
 
-// Filtre simple sur le statut ; sans filtre, tout est liste mais avec les non
-// traites en premier (cf. ORDER BY traite ASC plus bas).
 $f = $_GET['f'] ?? '';
 $where = ''; $params = [];
 if ($f === 'nontr') { $where = "WHERE traite = 0"; }
@@ -39,7 +30,7 @@ $msgs = $msgs->fetchAll();
 <form class="adm-filters" method="get">
   <div class="fld"><label>Filtre</label>
     <select name="f" onchange="this.form.submit()">
-      <option value="" <?= $f===''?'selected':'' ?>>- tous -</option>
+      <option value="" <?= $f===''?'selected':'' ?>>— tous —</option>
       <option value="nontr" <?= $f==='nontr'?'selected':'' ?>>non traités</option>
       <option value="tr" <?= $f==='tr'?'selected':'' ?>>traités</option>
     </select>

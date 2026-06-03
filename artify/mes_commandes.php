@@ -1,16 +1,8 @@
 <?php
-
-/**
- * Historique des commandes de l'utilisateur connecte. Triees de la plus
- * recente a la plus ancienne. Statut affiche en couleur (en attente,
- * confirmee, en fabrication, expediee, livree, annulee).
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
-$page_title = 'Mes commandes - Artify';
+$page_title = 'Mes commandes — Artify';
 
-// GROUP_CONCAT permet d'afficher tous les produits d'une commande sur une seule ligne du tableau sans faire un sous-SELECT par ligne.
 $st = $pdo->prepare(
     "SELECT c.id, c.montant_total, c.statut, c.created_at, a.nom_boutique,
             COUNT(lc.id) AS nb_lignes,
@@ -26,7 +18,6 @@ $st = $pdo->prepare(
 $st->execute([current_user_id()]);
 $commandes = $st->fetchAll();
 
-// Mapping statut vers classe CSS du badge, plus simple a faire en PHP qu'avec une cascade de if dans la vue.
 $badge = [
     'en_attente'      => 'badge muted',
     'confirmee'       => 'badge ok',
@@ -57,7 +48,7 @@ include __DIR__ . '/includes/header.php';
           <td>#<?= (int)$c['id'] ?></td>
           <td><?= h(date('d/m/Y H:i', strtotime($c['created_at']))) ?></td>
           <td><?= h($c['nom_boutique']) ?></td>
-          <td><?= h($c['produits'] ?? '-') ?></td>
+          <td><?= h($c['produits'] ?? '—') ?></td>
           <td><?= number_format((float)$c['montant_total'], 2, ',', ' ') ?> &euro;</td>
           <td><span class="<?= $badge[$c['statut']] ?? 'badge' ?>"><?= h($c['statut']) ?></span></td>
         </tr>

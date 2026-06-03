@@ -1,11 +1,5 @@
 <?php
-
-/**
- * Validation et gestion des artisans. Permet de marquer un artisan comme
- * verifie (badge sur sa fiche publique) et de voir ses statistiques.
- */
-
-$page_title = 'Artisans - Backoffice Artify';
+$page_title = 'Artisans — Backoffice Artify';
 require_once __DIR__ . '/_header.php';
 /** @var PDO $pdo */
 
@@ -13,13 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int)($_POST['id'] ?? 0);
     $action = $_POST['action'] ?? '';
-    // Bascule du flag verifie : trick "1 - verifie" pour inverser sans relire la valeur.
     if ($action === 'toggle_verifie') {
         $pdo->prepare("UPDATE artisan SET verifie = 1 - verifie WHERE id = ?")->execute([$id]);
         flash_set('success', 'Statut de vérification mis à jour.');
     } elseif ($action === 'delete') {
-        // Ici on tente le DELETE brut ; si l'artisan a des produits ou des
-        // commandes liees, les FK rejettent et on affiche un message explicite.
         try {
             $pdo->prepare("DELETE FROM artisan WHERE id = ?")->execute([$id]);
             flash_set('success', 'Fiche artisan supprimée.');
@@ -36,8 +27,6 @@ if ($q !== '') {
     $where[] = "(a.nom_boutique LIKE ? OR a.specialite LIKE ? OR u.email LIKE ?)";
     $params = ["%$q%","%$q%","%$q%"];
 }
-// Les sous-requetes ramenent les compteurs (produits, evts) dans la meme passe
-// pour eviter une boucle N+1 cote PHP.
 $sql = "SELECT a.*, u.email, u.prenom, u.nom, u.ville,
                (SELECT COUNT(*) FROM produit p WHERE p.artisan_id = a.id) AS nb_produits,
                (SELECT COUNT(*) FROM evenement e WHERE e.artisan_id = a.id) AS nb_evts
@@ -71,10 +60,10 @@ $rows = $st->fetchAll();
     <tr>
       <td><?= (int)$a['id'] ?></td>
       <td><strong><?= h($a['nom_boutique']) ?></strong></td>
-      <td><?= h($a['specialite'] ?: '-') ?></td>
+      <td><?= h($a['specialite'] ?: '—') ?></td>
       <td><?= h(trim(($a['prenom'] ?? '') . ' ' . ($a['nom'] ?? ''))) ?><br>
           <span class="meta" style="font-size:12px;color:var(--muted)"><?= h($a['email']) ?></span></td>
-      <td><?= h($a['ville'] ?: '-') ?></td>
+      <td><?= h($a['ville'] ?: '—') ?></td>
       <td><?= number_format((float)$a['note_moyenne'], 2, ',', ' ') ?></td>
       <td><?= (int)$a['nb_avis'] ?></td>
       <td><?= (int)$a['nb_produits'] ?></td>

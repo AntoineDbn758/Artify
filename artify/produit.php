@@ -1,17 +1,7 @@
 <?php
-
-/**
- * Fiche detaillee d'un produit. Affiche la photo principale, les informations
- * vendeur (artisan), le prix, les materiaux, les dimensions et le stock. Le
- * bouton 'Commander' n'apparait que si l'utilisateur est connecte et si stock
- * > 0. Si visiteur anonyme, redirige vers login_form.php avec ?next= pour
- * revenir ici apres connexion.
- */
-
 require_once __DIR__ . '/includes/bootstrap.php';
 $id = (int)($_GET['id'] ?? 0);
 
-// On force est_publie=1 dans le WHERE pour qu'un produit en brouillon ne soit jamais accessible via URL directe.
 $st = $pdo->prepare(
   "SELECT p.*, c.nom AS categorie, a.nom_boutique, a.id AS aid,
           ip.url AS image_url
@@ -23,7 +13,6 @@ $st = $pdo->prepare(
 $st->execute([$id]);
 $p = $st->fetch();
 
-// Produit absent ou depublie : on renvoie un vrai 404 plutot qu'une page blanche, important pour le SEO.
 if (!$p) {
     http_response_code(404);
     $page_title = 'Produit introuvable';
@@ -32,7 +21,7 @@ if (!$p) {
     include __DIR__ . '/includes/footer.php';
     exit;
 }
-$page_title = $p['nom'] . ' - Artify';
+$page_title = $p['nom'] . ' — Artify';
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -71,9 +60,7 @@ include __DIR__ . '/includes/header.php';
       <?php endif; ?>
       <dt>Stock</dt><dd><?= (int)$p['stock'] > 0 ? (int)$p['stock'] . ' disponible(s)' : 'Sur commande' ?></dd>
     </dl>
-    <?php // Le bouton Commander n'apparait que si du stock est dispo, sinon on suggere un contact direct artisan. ?>
     <?php if ((int)$p['stock'] > 0): ?>
-      <?php // Visiteur anonyme : on renvoie vers le login avec ?next pour revenir ici apres connexion. ?>
       <?php if (current_user_id() !== null): ?>
         <form method="post" action="commande_new.php"
               style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
