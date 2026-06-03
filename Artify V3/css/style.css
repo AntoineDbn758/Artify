@@ -272,7 +272,7 @@ body.compact-contact .layout-with-sidebar{align-items:stretch}
 .forum-table a:hover{color:var(--ocre);text-decoration:underline}
 .forum-msg{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:10px 0}
 .forum-msg-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.85rem}
-.forum-msg-body{font-size:.93rem;color:var(--mid);line-height:1.5}
+.forum-msg-body{font-size:.93rem;color:var(--mid);line-height:1.5;overflow-wrap:break-word;word-break:break-word}
 .forum-reply{background:var(--ocre-pale);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:18px}
 .forum-reply label{display:block;font-weight:600;margin-bottom:6px;font-size:.9rem}
 .forum-reply textarea{width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--border);font:inherit;resize:vertical;margin-bottom:8px}
